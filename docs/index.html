@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>[Your Product Name] · Building with AI (Fall 2026)</title>
+  <title>FareLink · Building with AI (Fall 2026)</title>
 
   <!-- Week 1: create your PostHog account only.
        Build 2: paste your project's current PostHog web snippet here,
@@ -144,8 +144,8 @@
     <!-- HERO / PRODUCT PITCH -->
     <header>
       <span class="eyebrow">NYU Stern · Building with AI · Fall 2026</span>
-      <h1>[Your Product Name]</h1>
-      <p class="tagline">[One clear sentence: Who is this for, and what painful job does it do for them?]</p>
+      <h1>FareLink</h1>
+      <p class="tagline">One journey. One payment. Every ride. — a unified transit commerce experience that settles a multi-operator journey in a single checkout and keeps every ticket in one wallet.</p>
       <div class="cta-row">
         <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
@@ -157,11 +157,12 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> [Build 1: local prototype / Builds 2–4: local app / Build 5: cloud app]<br />
-        <strong>Demo:</strong> [Add a screenshot or GIF now; add the live cloud app URL in Build 5.]
+        <strong>Current Status:</strong> Build 1 — local prototype (runs on your machine).<br />
+        <strong>Demo:</strong> [Add a screenshot or GIF of the local <code>app/index.html</code> prototype here.]
       </p>
       <p class="meta">
-        Ask your coding agent to embed a screenshot or GIF of your local prototype for Build 1. Keep this evidence current, then add your cloud app link and two-minute video in Build 5.
+        The Build 1 prototype is a simulated unified-transit-commerce flow: choose a multi-operator journey, review one combined ticket basket (passes you already hold cover their legs at no charge), complete a simulated checkout, and keep every DEMO ticket in a persistent journey wallet. Checkout is simulated — no real payment is processed and no real or authorized tickets are issued.</p><p class="meta">
+        All fares are illustrative mock data; tickets are clearly labeled “DEMO — Not valid for travel.”
       </p>
     </section>
 
@@ -170,22 +171,26 @@
       <h2>Living PRD (Product Requirements Document)</h2>
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
+      <h3>0. Vision vs. Build 1 Scope</h3>
+      <p><strong>Long-term vision:</strong> FareLink is a <em>unified transit commerce experience</em> — <em>One journey. One payment. Every ride.</em> It combines <strong>Checkout</strong> (one transaction for a multi-operator journey), <strong>Handoff</strong> (all tickets and payment actions organized in one wallet), and <strong>Bundles</strong> (personalized cross-system subscriptions) into a single account that taps to ride across participating systems.</p>
+      <p><strong>Build 1 scope (this prototype):</strong> A simulated slice of <em>Checkout + Handoff</em>. The rider selects a multi-operator journey, reviews one combined ticket basket, completes a <em>simulated</em> checkout, and accesses a <em>simulated</em> persistent journey wallet. Passes the rider already holds cover their matching legs at no charge (still shown in the wallet). It uses illustrative mock fares, issues only clearly-labeled DEMO tickets, and does not move money or connect to live transit systems. <strong>Bundles are out of scope for Build 1.</strong></p>
+
       <h3>1. Target User & The Job to Be Done</h3>
-      <p><strong>Who is this for?</strong> [Name a specific, reachable person or role you have direct access to.]</p>
-      <p><strong>The painful "Before" workflow:</strong> [How do they do this today, and why is it slow, manual, or broken?]</p>
-      <p><strong>The "After" workflow with this product:</strong> [What does your tool do for them in one sitting?]</p>
+      <p><strong>Who is this for?</strong> NJ-resident NYU classmates and friends who commute into Manhattan via NJ Transit rail, PATH, and the MTA subway. They are reachable in person on campus, so I can watch them plan and pay for real commutes.</p>
+      <p><strong>The painful "Before" workflow:</strong> A single door-to-door journey crosses operators (NJ Transit, PATH, MTA), each with its own app, ticket, and payment step. Riders juggle multiple purchases, can't see one combined price, and have tickets scattered across apps — with no single place that also recognizes the passes they already hold.</p>
+      <p><strong>The "After" workflow with this product:</strong> The rider picks a journey, sees one combined basket (with held passes already covering their legs), pays once in a single simulated checkout, and finds every ticket organized in one journey wallet.</p>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> [The 1 main workflow this product does reliably]</li>
-        <li><strong>Out of Scope #1:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #2:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #3:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
+        <li><strong>In Scope (Core Workflow):</strong> Select a multi-operator journey → review one combined ticket basket (held passes cover matching legs at $0) → complete a simulated checkout → access a persistent simulated journey wallet. Results are computed from the journey + mock rules + held passes; orders and tickets persist locally across refreshes.</li>
+        <li><strong>Out of Scope #1:</strong> Real payments — checkout is simulated; no money moves, no card processing, no stored value.</li>
+        <li><strong>Out of Scope #2:</strong> Real or authorized tickets and live integrations — only DEMO tickets labeled “Not valid for travel”; no real NJ Transit / PATH / MTA APIs, schedules, or fare validation.</li>
+        <li><strong>Out of Scope #3:</strong> Bundles — personalized cross-system subscriptions are a future-version feature, not built in Build 1; only clearly labeled mock fares.</li>
       </ul>
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> [What is the #1 technical or user risk that could sink this product?]</p>
-      <p><strong>Simple Architecture:</strong> [User Input] → [Your App / Server] → [AI Model / Tool] → [Output]</p>
+      <p><strong>Riskiest Assumption:</strong> That riders value settling a whole multi-operator journey in one payment and one wallet enough to adopt it — and that operators would ultimately permit unified checkout and ticket issuance. (Build 1 simulates the end-to-end experience to test desirability before any real payment or operator integration.)</p>
+      <p><strong>Simple Architecture (Build 1):</strong> Journey + held passes (browser) → basket builder + simulated checkout (pure JS over mock rules) → DEMO tickets persisted in <code>localStorage</code> → journey wallet. No server, no payment SDK, no network calls beyond loading the local mock-data file.</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
@@ -216,9 +221,9 @@
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [What you actually built; link your local prototype screenshot or GIF above.]</li>
+          <li><strong>What shipped:</strong> Local prototype in <code>app/</code> — a simulated unified transit commerce flow: select a multi-operator journey → combined ticket basket (held passes cover matching legs at $0) → simulated checkout → persistent journey wallet of DEMO tickets. Built in the navy/purple theme, reusing prior data and render patterns. PRD updated with the “One journey. One payment. Every ride.” vision (Checkout / Handoff / Bundles), reachable user, before/after workflow, core workflow, three non-goals, and the vision-vs-Build-1 distinction.</li>
           <li><strong>Things learned with AI:</strong> [What you learned from AI practice and Terminus Episodes 1 and 2.]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
+          <li><strong>What broke / changed in PRD:</strong> Refined from a spending optimizer to a unified transit commerce experience. Added persistent (localStorage) simulated orders, pass-based leg coverage, and clear DEMO / simulated-checkout labeling so nothing reads as a real purchase or valid ticket.</li>
           <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
         </ul>
       </div>

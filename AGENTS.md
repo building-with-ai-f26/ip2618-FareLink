@@ -3,15 +3,16 @@
 > Give this file to your coding agent and check that it is using these instructions. Keep the stack, commands, and ground rules current.
 
 ## 1. Project Overview
-- **What this repo builds:** [1–2 sentence summary]
-- **Primary user & core workflow:** [See the living PRD in `docs/index.html`]
-- **Tech stack:** [e.g., Python 3.12 / FastAPI / Next.js / SQLite / OpenRouter API]
+- **What this repo builds:** FareLink, a unified transit commerce experience — “One journey. One payment. Every ride.” Long-term it combines Checkout (one payment for a multi-operator journey), Handoff (all tickets in one wallet), and Bundles (cross-system subscriptions). Build 1 is a local, SIMULATED slice of Checkout + Handoff for NJ→NYC journeys, using clearly labeled illustrative mock fares.
+- **Primary user & core workflow:** NJ-resident NYC commuters. Core workflow: select a multi-operator journey → review one combined ticket basket (held passes cover matching legs at $0) → complete a SIMULATED checkout → access a persistent (localStorage) journey wallet of DEMO tickets. No real payments, no real/authorized tickets. See the living PRD in `docs/index.html`.
+- **Tech stack:** Static HTML/CSS/vanilla JS (no build step, no backend). Mock data in `app/data/mock_fares.json`.
+- **Hard constraints:** No real payments, no live transit APIs, no unsupported/invented discounts. All fares are mock and labeled as such.
 
 ## 2. Commands
-- **Install dependencies:** `[e.g., npm install / uv sync]`
-- **Run locally:** `[e.g., npm run dev]`
-- **Run deterministic tests:** `[e.g., pytest / npm test]`
-- **Run model evals:** `[e.g., python tests/eval.py]`
+- **Install dependencies:** none (static app).
+- **Run locally:** `cd app && python3 -m http.server 8000` then open `http://localhost:8000/` (serving via http is required so the browser can `fetch` the JSON).
+- **Run deterministic tests:** none yet (planned for Build 4).
+- **Run model evals:** none yet (no model in Build 1).
 
 ## 3. Non-Negotiable Engineering Rules
 1. **Plan before coding:** Before touching multiple files, propose a brief plan and wait for approval.

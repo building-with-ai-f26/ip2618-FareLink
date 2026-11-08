@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FareLink — Build 1 Prototype</title>
+  <style>
+    :root {
+      --bg-top: #141334;
+      --bg-bot: #0c0b22;
+      --card: #1c1b45;
+      --card-2: #232255;
+      --border: #332f66;
+      --text: #f3f2fb;
+      --muted: #a8a6cf;
+      --accent: #8b5cf6;
+      --accent-2: #a78bfa;
+      --good: #34d399;
+      --badge: #6d28d9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      line-height: 1.5;
+      background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bot) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 540px; margin: 0 auto; padding: 28px 18px 72px; }
+
+    /* Intro / hero */
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .logo {
+      width: 36px; height: 36px; border-radius: 10px; flex: none;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 18px;
+    }
+    h1 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
+    .intro { color: var(--muted); font-size: 15px; margin: 0 0 10px; }
+    .intro strong { color: var(--text); }
+    .mock-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; color: #ddd6fe; background: rgba(139,92,246,0.14);
+      border: 1px solid rgba(139,92,246,0.35); padding: 3px 9px; border-radius: 999px;
+      margin-bottom: 22px;
+    }
+    .mock-pill::before { content: "●"; color: var(--accent-2); font-size: 9px; }
+
+    /* Step cards */
+    .step {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 18px 18px 20px; margin-bottom: 16px;
+    }
+    .step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 50%; flex: none;
+      background: var(--badge); color: #fff; font-weight: 700; font-size: 14px;
+      display: grid; place-items: center;
+    }
+    .step-head h2 { font-size: 16px; margin: 0; }
+    .step-hint { font-size: 13px; color: var(--muted); margin: -6px 0 12px 36px; }
+
+    /* Wallet passes */
+    .pass {
+      display: grid; grid-template-columns: auto 1fr; gap: 2px 12px;
+      padding: 12px; margin-bottom: 10px; border-radius: 12px;
+      background: var(--card-2); border: 1px solid var(--border); cursor: pointer;
+    }
+    .pass:last-child { margin-bottom: 0; }
+    .pass input { margin-top: 3px; accent-color: var(--accent); width: 17px; height: 17px; }
+    .pass-name { font-weight: 600; font-size: 15px; }
+    .pass-detail { grid-column: 2; font-size: 12.5px; color: var(--muted); }
+    .mock-tag {
+      background: rgba(167,139,250,0.18); color: var(--accent-2); font-size: 9.5px;
+      font-weight: 700; padding: 1px 6px; border-radius: 999px; letter-spacing: .05em;
+      vertical-align: middle;
+    }
+
+    /* Commute inputs (Step 1) */
+    .commute-row {
+      background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 10px;
+    }
+    .commute-row:last-child { margin-bottom: 0; }
+    .commute-use { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; cursor: pointer; }
+    .commute-use input { accent-color: var(--accent); width: 17px; height: 17px; }
+    .commute-freq { display: flex; align-items: center; gap: 8px; margin: 8px 0 0 27px; }
+    .commute-freq.disabled { opacity: 0.4; }
+    .commute-freq input {
+      width: 64px; padding: 8px 10px; font-size: 15px; color: var(--text);
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px; text-align: center;
+    }
+    .freq-unit { font-size: 13px; color: var(--muted); }
+
+    /* Result tags & savings */
+    .save-badge {
+      background: rgba(52,211,153,0.14); border: 1px solid rgba(52,211,153,0.35);
+      color: #a7f3d0; font-size: 13.5px; font-weight: 600; padding: 10px 14px;
+      border-radius: 12px; margin-bottom: 14px;
+    }
+    .save-badge.neutral { background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.3); color: #ddd6fe; }
+    .tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
+    .tag-owned { background: rgba(52,211,153,0.18); color: #6ee7b7; }
+    .tag-buy { background: rgba(167,139,250,0.2); color: var(--accent-2); }
+    .tag-payg { background: rgba(148,163,184,0.2); color: #cbd5e1; }
+    .leg-save { color: var(--good); font-weight: 700; font-size: 12.5px; margin-left: 4px; }
+
+    /* Trip select */
+    select {
+      width: 100%; padding: 13px 14px; font-size: 15px; color: var(--text);
+      border: 1px solid var(--border); border-radius: 12px; background: var(--card-2);
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a78bfa' stroke-width='2'><path d='M4 6l4 4 4-4'/></svg>");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+
+    /* Button */
+    .btn {
+      width: 100%; padding: 14px; font-size: 16px; font-weight: 700; color: #fff;
+      border: none; border-radius: 12px; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      box-shadow: 0 6px 18px rgba(139,92,246,0.35);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-ghost {
+      background: transparent; color: var(--accent-2);
+      border: 1px solid var(--border); box-shadow: none; margin-top: 12px;
+    }
+
+    /* Operator chip + badges */
+    .op-chip {
+      display: inline-block; font-size: 10.5px; font-weight: 700; color: #ddd6fe;
+      background: rgba(139,92,246,0.2); padding: 1px 7px; border-radius: 6px;
+      margin-right: 6px; vertical-align: middle;
+    }
+    .basket-head { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+    .demo-badge {
+      font-size: 9.5px; font-weight: 800; letter-spacing: .04em; color: #fecaca;
+      background: rgba(239,68,68,0.16); border: 1px solid rgba(239,68,68,0.4);
+      padding: 2px 7px; border-radius: 999px;
+    }
+    .sim-badge {
+      font-size: 9.5px; font-weight: 800; letter-spacing: .05em; color: #fde68a;
+      background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.4);
+      padding: 2px 7px; border-radius: 999px; margin-right: 8px;
+    }
+
+    /* Wallet: orders + ticket cards */
+    .order {
+      background: var(--card-2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px; margin-bottom: 14px;
+    }
+    .order-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .order-id { font-size: 12.5px; color: var(--muted); font-family: ui-monospace, monospace; }
+    .order-total { font-size: 13px; font-weight: 700; color: var(--good); }
+    .order-journey { font-size: 13.5px; color: var(--text); margin: 8px 0 12px; }
+    .ticket {
+      background: var(--card); border: 1px dashed var(--border); border-radius: 12px;
+      padding: 12px; margin-bottom: 10px;
+    }
+    .ticket:last-child { margin-bottom: 0; }
+    .ticket-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .ticket-route { font-weight: 600; font-size: 14px; }
+    .ticket-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
+    .ticket-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .ticket-status.valid { background: rgba(52,211,153,0.18); color: #6ee7b7; }
+    .ticket-status.covered { background: rgba(167,139,250,0.2); color: var(--accent-2); }
+    .ticket-id { font-size: 11.5px; color: var(--muted); font-family: ui-monospace, monospace; }
+
+    /* Result */
+    #result { margin-top: 16px; }
+    .result-hint { color: var(--muted); font-size: 13px; margin-top: 14px; }
+    .total-card {
+      background: linear-gradient(135deg, rgba(52,211,153,0.14), rgba(139,92,246,0.14));
+      border: 1px solid rgba(52,211,153,0.35); border-radius: 14px;
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .total-label { font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .total-value { font-size: 26px; font-weight: 800; color: var(--good); margin-top: 2px; }
+    ul.legs { list-style: none; padding: 0; margin: 0; }
+    ul.legs li {
+      background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 10px;
+    }
+    ul.legs li:last-child { margin-bottom: 0; }
+    .leg-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .leg-label { font-weight: 600; font-size: 14.5px; }
+    .leg-price { font-weight: 700; color: var(--accent-2); white-space: nowrap; }
+    .leg-method { font-size: 13.5px; margin: 3px 0 2px; }
+    .leg-method strong { color: var(--text); }
+    .leg-reason { font-size: 12.5px; color: var(--muted); }
+    .note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Intro / benefit -->
+    <div class="brand">
+      <div class="logo">F</div>
+      <h1>FareLink</h1>
+    </div>
+    <p class="intro">
+      <strong>One journey. One payment. Every ride.</strong> Pick a multi-operator journey, review a
+      single combined ticket basket, check out in one simulated payment, and keep every ticket in one
+      journey wallet — passes you already hold cover their legs automatically.
+    </p>
+    <span class="mock-pill">Prototype · simulated checkout · no real payments or real tickets</span>
+
+    <!-- Step 1 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">1</span>
+        <h2>Choose your journey</h2>
+      </div>
+      <select id="journey" aria-label="Choose a journey"></select>
+      <p class="step-hint" style="margin-top:14px;margin-left:0;">Passes you already hold (applied to your basket):</p>
+      <div id="passes"></div>
+      <button class="btn btn-ghost" id="newJourneyBtn">Start a new journey</button>
+    </section>
+
+    <!-- Step 2 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">2</span>
+        <h2>Your ticket basket</h2>
+      </div>
+      <div id="basket"></div>
+    </section>
+
+    <!-- Step 3 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">3</span>
+        <h2>Your journey wallet</h2>
+      </div>
+      <div id="wallet"></div>
+    </section>
+  </div>
+
+  <script src="app.js?v=3"></script>
+</body>
+</html>

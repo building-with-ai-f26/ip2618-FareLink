@@ -42,4 +42,16 @@ git clone https://github.com/building-with-ai-f26/<your-repo-name>.git
 cd <your-repo-name>
 ```
 
+### Run the Build 1 prototype
+
+The prototype is a static app with no dependencies. Serve the `app/` folder so the browser can load the mock-data JSON:
+
+```bash
+cd app
+python3 -m http.server 8000
+# then open http://localhost:8000/ in your browser
+```
+
+Choose a multi-operator journey, review the combined ticket basket (passes you already hold cover their legs at no charge), complete a simulated checkout, and view your tickets in the persistent journey wallet. Fares come from the illustrative mock data in `app/data/mock_fares.json`. **Checkout is simulated — no real payments, and tickets are DEMO only, not valid for travel.** Simulated orders persist in your browser via `localStorage`; use “Start a new journey” or “Clear demo wallet” to reset.
+
 If your app needs API keys, use a local environment file such as `.env`. Keep private keys out of source code, browser code, screenshots, and commits. The template ignores `.env`; `.env.example` contains placeholders only.

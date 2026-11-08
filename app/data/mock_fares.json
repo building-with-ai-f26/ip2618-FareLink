@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "fareBasis": "illustrative-mock",
+    "disclaimer": "ILLUSTRATIVE MOCK DATA for the FareLink Build 1 unified-transit-commerce prototype. Journeys, fares, and passes below are hand-entered examples, NOT live or verified NJ Transit / PATH / MTA products. Checkout is SIMULATED: no real payment is processed and no real or authorized tickets are issued. Structure is designed so verified fares/rules can replace these later (see 'source' fields).",
+    "monthlyWeeks": 4.33,
+    "defaultPaidRidesPerRoundTrip": 2
+  },
+
+  "systems": [
+    {
+      "id": "NJ_RAIL",
+      "label": "NJ Transit Rail (Newark \u2194 NYC)",
+      "operator": "NJ Transit",
+      "singleFare": { "price": 5.75, "source": "illustrative-mock" },
+      "paidRidesPerRoundTrip": 2,
+      "periodPasses": [
+        { "id": "njt_monthly", "name": "NJ Transit Monthly Rail Pass", "period": "monthly", "price": 168.00, "coversUnlimited": true, "source": "illustrative-mock" }
+      ]
+    },
+    {
+      "id": "PATH",
+      "label": "PATH",
+      "operator": "PATH",
+      "singleFare": { "price": 2.75, "source": "illustrative-mock" },
+      "paidRidesPerRoundTrip": 2,
+      "periodPasses": [
+        { "id": "path_monthly", "name": "PATH SmartLink 30-Day Unlimited", "period": "monthly", "price": 89.00, "coversUnlimited": true, "source": "illustrative-mock" }
+      ]
+    },
+    {
+      "id": "MTA_SUBWAY",
+      "label": "MTA Subway",
+      "operator": "MTA",
+      "singleFare": { "price": 2.90, "source": "illustrative-mock" },
+      "paidRidesPerRoundTrip": 2,
+      "periodPasses": [
+        { "id": "mta_monthly", "name": "MTA 30-Day Unlimited", "period": "monthly", "price": 132.00, "coversUnlimited": true, "source": "illustrative-mock" }
+      ]
+    }
+  ],
+
+  "journeys": [
+    {
+      "id": "newark_herald",
+      "name": "Newark Penn \u2192 Herald Square",
+      "legs": [
+        { "system": "NJ_RAIL", "operator": "NJ Transit", "label": "Rail: Newark Penn \u2192 NY Penn", "price": 5.75 },
+        { "system": "MTA_SUBWAY", "operator": "MTA", "label": "Subway: Penn Station \u2192 Herald Sq", "price": 2.90 }
+      ]
+    },
+    {
+      "id": "hoboken_times_sq",
+      "name": "Hoboken \u2192 Times Square",
+      "legs": [
+        { "system": "PATH", "operator": "PATH", "label": "PATH: Hoboken \u2192 33rd St", "price": 2.75 },
+        { "system": "MTA_SUBWAY", "operator": "MTA", "label": "Subway: 33rd St \u2192 Times Sq", "price": 2.90 }
+      ]
+    },
+    {
+      "id": "secaucus_wtc",
+      "name": "Secaucus \u2192 World Trade Center",
+      "legs": [
+        { "system": "NJ_RAIL", "operator": "NJ Transit", "label": "Rail: Secaucus \u2192 NY Penn", "price": 5.25 },
+        { "system": "PATH", "operator": "PATH", "label": "PATH: 33rd St \u2192 World Trade Center", "price": 2.75 }
+      ]
+    }
+  ]
+}
