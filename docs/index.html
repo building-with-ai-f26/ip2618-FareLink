@@ -137,6 +137,28 @@
       font-size: 13px;
       color: var(--muted);
     }
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin: 16px 0 4px;
+    }
+    .shots figure {
+      margin: 0;
+    }
+    .shots img {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: block;
+      background: #1e1b3a;
+    }
+    .shots figcaption {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -158,8 +180,18 @@
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
         <strong>Current Status:</strong> Build 1 — local prototype (runs on your machine).<br />
-        <strong>Demo:</strong> [Add a screenshot or GIF of the local <code>app/index.html</code> prototype here.]
+        <strong>Demo:</strong> Screenshots below are captured from the working local <code>app/index.html</code> prototype.
       </p>
+      <div class="shots">
+        <figure>
+          <img src="images/basket.png" alt="FareLink combined ticket basket for Newark Penn to Herald Square: the NJ Transit rail leg is covered by a held monthly pass and the MTA subway leg is a $2.90 mock single ticket, for one simulated combined payment of $2.90." />
+          <figcaption>One combined, multi-operator ticket basket (NJ Transit + MTA). A held monthly pass covers its eligible leg at $0; the other leg is an illustrative mock single ticket. Checkout is simulated.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/wallet.png" alt="FareLink simulated journey wallet showing two simulated orders with DEMO tickets labeled Not valid for travel: a fully pass-covered Hoboken to Times Square trip and a Secaucus to World Trade Center trip with one paid demo ticket and one pass-covered leg." />
+          <figcaption>The persistent (localStorage) journey wallet after two simulated checkouts. Every ticket is a DEMO artifact labeled “Not valid for travel.”</figcaption>
+        </figure>
+      </div>
       <p class="meta">
         The Build 1 prototype is a simulated unified-transit-commerce flow: choose a multi-operator journey, review one combined ticket basket (passes you already hold cover their legs at no charge), complete a simulated checkout, and keep every DEMO ticket in a persistent journey wallet. Checkout is simulated — no real payment is processed and no real or authorized tickets are issued.</p><p class="meta">
         All fares are illustrative mock data; tickets are clearly labeled “DEMO — Not valid for travel.”
@@ -221,10 +253,10 @@
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
         <ul>
-          <li><strong>What shipped:</strong> Local prototype in <code>app/</code> — a simulated unified transit commerce flow: select a multi-operator journey → combined ticket basket (held passes cover matching legs at $0) → simulated checkout → persistent journey wallet of DEMO tickets. Built in the navy/purple theme, reusing prior data and render patterns. PRD updated with the “One journey. One payment. Every ride.” vision (Checkout / Handoff / Bundles), reachable user, before/after workflow, core workflow, three non-goals, and the vision-vs-Build-1 distinction.</li>
-          <li><strong>Things learned with AI:</strong> [What you learned from AI practice and Terminus Episodes 1 and 2.]</li>
-          <li><strong>What broke / changed in PRD:</strong> Refined from a spending optimizer to a unified transit commerce experience. Added persistent (localStorage) simulated orders, pass-based leg coverage, and clear DEMO / simulated-checkout labeling so nothing reads as a real purchase or valid ticket.</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> Local prototype in <code>app/</code> — a simulated unified transit commerce flow: select a multi-operator journey → combined ticket basket (held passes cover matching legs at $0) → simulated checkout → persistent journey wallet of DEMO tickets. Built in the navy/purple theme, reusing prior data and render patterns. Added real screenshots of the running prototype (populated multi-operator basket and simulated journey wallet) to this Product Page. PRD updated with the “One journey. One payment. Every ride.” vision (Checkout / Handoff / Bundles), reachable user, before/after workflow, core workflow, three non-goals, and the vision-vs-Build-1 distinction.</li>
+          <li><strong>Things learned with AI:</strong> Driving a coding agent works best with a plan-first, small-batch loop — propose the change, approve it, edit, then verify — rather than large unreviewed edits. I learned to confirm fixes with quick checks (a Node script mirroring the coverage rule, JSON/JS validation) instead of trusting the code by inspection, and that an agent can capture real UI screenshots by driving the already-installed browser headlessly with no new dependencies.</li>
+          <li><strong>What broke / changed in PRD:</strong> Refined from a spending optimizer to a unified transit commerce experience. Added persistent (localStorage) simulated orders, pass-based leg coverage, and clear DEMO / simulated-checkout labeling so nothing reads as a real purchase or valid ticket. Fixed two issues found while testing: (1) a loading failure where a stale <code>app.js</code>/JSON could run against new markup and silently fail — now cache-busted on load with a visible error banner if the mock data can’t be fetched; and (2) pass coverage that incorrectly covered <em>every</em> route an agency operates — coverage now requires both a matching transit system <em>and</em> an explicitly eligible route, defaulting to “not covered” when eligibility is unknown (verified against covered and uncovered journeys).</li>
+          <li><strong>Cost &amp; time this week:</strong> $0 additional project-specific spending this week (no extra API credits purchased; no paid API calls). Existing personal subscriptions were used — a paid ChatGPT plan and a paid Claude plan (subscription costs not itemized here). Approximately 6 hours.</li>
         </ul>
       </div>
 

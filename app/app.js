@@ -66,10 +66,18 @@ function allPasses() {
   return out;
 }
 
-// Does any held pass cover this leg under the mock rules? (system-level coverage)
+// Does any held pass cover this leg under the mock rules?
+// MOCK RULE: coverage requires BOTH a matching transit system AND the leg's
+// specific route listed in the pass's eligibleRoutes. If route eligibility is
+// unknown (missing route id, or pass without eligibleRoutes), default to NOT
+// covered so passes never cover every route an agency happens to operate.
 function coveringPassFor(leg) {
+  if (!leg || !leg.route) return null; // unknown route -> not covered
   for (const pass of allPasses()) {
-    if (heldPasses[pass.id] && pass.system === leg.system) return pass;
+    if (!heldPasses[pass.id]) continue;
+    if (pass.system !== leg.system) continue;              // must match system
+    const eligible = Array.isArray(pass.eligibleRoutes) ? pass.eligibleRoutes : [];
+    if (eligible.includes(leg.route)) return pass;         // must be explicitly eligible
   }
   return null;
 }
