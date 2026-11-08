@@ -1,10 +1,10 @@
-# [Project Name]
+# FareLink
 
-> **One-line pitch:** [Who is this for, and what job does it do for them?]
+> **One-line pitch:** FareLink helps NJ–NYC commuters purchase, organize, and access transit tickets across multiple transportation systems through one unified checkout and digital wallet.
 
-- **Builder:** [Your Name] (`@github-handle`)
-- **Pod:** [Pod Name / Number]
-- **Product Page & Living PRD:** [Add your GitHub Pages URL]
+- **Builder:** Isabella Pena Lazaro @ip2618
+- **Pod:** 12
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-FareLink/
 - **App:** runs locally through Week 4; add a cloud URL in Build 5.
 
 ## Start here: Build 1
