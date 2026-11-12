@@ -5,12 +5,13 @@
 ## 1. Project Overview
 - **What this repo builds:** LinkWise, a personalized commuter assistant — “Smarter connections, every day.” It helps NJ→NYC commuters catch their transit connections (PATH, NJ Transit Rail, Hudson-Bergen Light Rail) through a large, colorful departure countdown. Build 1 is a local slice: save multi-leg commutes, get the right one suggested by day/time, and watch a live-style countdown to the next train. All departure data is clearly labeled MOCK.
 - **Primary user & core workflow:** NJ-resident NYC commuters who ride the same routes daily. Core workflow: dashboard suggests (or user switches to) a saved commute → large per-second departure countdown shows boarding station, destination, direction, and operator → rider taps “I'm on this train → Next leg” to advance through legs → the countdown rolls to the next eligible departure when one passes. Commutes persist in `localStorage`. See the living PRD in `docs/index.html`.
-- **Tech stack:** Static HTML/CSS/vanilla JS (no build step, no backend). Mock schedule data in `app/data/mock_schedule.json`, read through a single `ScheduleService` seam in `app/app.js` so a real transit API can replace it later. Deterministic logic tests in `tests/schedule_logic.test.js` (run with `node`).
+- **Tech stack:** Static HTML/CSS/vanilla JS (no build step, no backend). The app lives in `docs/app/` so GitHub Pages (`main` → `/docs`) publishes it alongside the Product Page. Mock schedule data in `docs/app/data/mock_schedule.json`, read through a single `ScheduleService` seam in `docs/app/app.js` so a real transit API can replace it later. Deterministic logic tests in `tests/schedule_logic.test.js` (run with `node`).
 - **Hard constraints:** No live transit APIs, no fabricated real-time information. All departure times are illustrative MOCK data and labeled as such. No fare payments, checkout baskets, or ticket wallets in the main experience.
 
 ## 2. Commands
 - **Install dependencies:** none (static app).
-- **Run locally:** `cd app && python3 -m http.server 8000` then open `http://localhost:8000/` (serving via http is required so the browser can `fetch` the JSON).
+- **Run locally:** `cd docs/app && python3 -m http.server 8000` then open `http://localhost:8000/` (serving via http is required so the browser can `fetch` the JSON).
+- **Live URLs (GitHub Pages):** app at `https://building-with-ai-f26.github.io/ip2618-FareLink/app/`, Product Page at `https://building-with-ai-f26.github.io/ip2618-FareLink/`.
 - **Run deterministic tests:** `node tests/schedule_logic.test.js` (pure logic — ScheduleService, countdown formatting, next-departure selection, weekday validity, day/time commute suggestion; no browser or network).
 - **Run model evals:** none yet (no model in Build 1).
 

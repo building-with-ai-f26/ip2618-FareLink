@@ -169,7 +169,8 @@
       <h1>LinkWise</h1>
       <p class="tagline">Smarter connections, every day. — a personalized commuter assistant that helps NJ–NYC riders catch their transit connections through large, colorful departure countdowns.</p>
       <div class="cta-row">
-        <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
+        <a class="btn" href="app/" onclick="window.posthog && posthog.capture('clicked_try_linkwise')">Try LinkWise →</a>
+        <a class="btn btn-secondary" href="#live-demo">See the Product</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
         <a class="btn btn-secondary" href="#build-log">Weekly Build Log</a>
       </div>
@@ -179,8 +180,8 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> Pivoted to LinkWise — local prototype (runs on your machine).<br />
-        <strong>Demo:</strong> Screenshots below are captured from the working local <code>app/index.html</code> prototype.
+        <strong>Current Status:</strong> Pivoted to LinkWise — live static app published on GitHub Pages (also runs locally).<br />
+        <strong>Try it:</strong> <a href="app/">Open the live LinkWise app →</a> (served from this same site at <code>/app/</code>). Screenshots below are captured from the running <code>docs/app/index.html</code> app.
       </p>
       <div class="shots">
         <figure>
@@ -230,7 +231,7 @@
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
       <p><strong>Riskiest Assumption:</strong> That a glanceable, per-second departure countdown for a rider’s own saved commute is valuable enough to open daily — and that mock schedule data can later be swapped for live operator feeds without reworking the experience. (This build tests the desirability of the countdown-first flow before any real integration.)</p>
-      <p><strong>Simple Architecture:</strong> Mock schedule file (<code>app/data/mock_schedule.json</code>) → <code>ScheduleService</code> (the single data seam) → dashboard suggestion + per-second countdown engine (pure vanilla JS) → commutes persisted in <code>localStorage</code>. No server, no framework, no network calls beyond loading the local mock-data file. Connecting a real transit API later means reimplementing <code>ScheduleService</code> only. Deterministic logic is covered by <code>tests/schedule_logic.test.js</code> (run with <code>node</code>).</p>
+      <p><strong>Simple Architecture:</strong> Mock schedule file (<code>docs/app/data/mock_schedule.json</code>) → <code>ScheduleService</code> (the single data seam) → dashboard suggestion + per-second countdown engine (pure vanilla JS) → commutes persisted in <code>localStorage</code>. No server, no framework, no network calls beyond loading the local mock-data file. Connecting a real transit API later means reimplementing <code>ScheduleService</code> only. Deterministic logic is covered by <code>tests/schedule_logic.test.js</code> (run with <code>node</code>).</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">

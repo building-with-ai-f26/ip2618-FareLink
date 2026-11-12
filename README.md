@@ -26,6 +26,7 @@ Create your PostHog account in Week 1. Install it on the Product Page and local 
 | File / folder | Purpose |
 | --- | --- |
 | [`docs/index.html`](./docs/index.html) | Required public pitch, living PRD, and weekly build log. Update with actual work and evidence. |
+| [`docs/app/`](./docs/app/) | The LinkWise application (static HTML/CSS/JS + mock schedule data). Published via GitHub Pages at `/app/` and runs locally with no server dependencies. |
 | [`Intent.md`](./Intent.md), [`Plan.md`](./Plan.md), [`journal/`](./journal/) | Optional drafting aids. No duplicate submission is required. |
 | [`AGENTS.md`](./AGENTS.md) | Local run commands, project context, and agent rules. Build 2 onward. |
 | [`tests/`](./tests/) | Verification guidance. Build 4 offers Track A domain evals **or** Track B user replays. |
@@ -42,17 +43,24 @@ git clone https://github.com/building-with-ai-f26/<your-repo-name>.git
 cd <your-repo-name>
 ```
 
-### Run the Build 1 prototype
+### Try LinkWise online
 
-The prototype is a static app with no dependencies. Serve the `app/` folder so the browser can load the mock-data JSON:
+The app is published through GitHub Pages alongside the Product Page (both are served from `docs/`):
+
+- **Live app:** https://building-with-ai-f26.github.io/ip2618-FareLink/app/
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-FareLink/
+
+### Run the app locally
+
+The app is a static site with no dependencies. Serve the `docs/app/` folder so the browser can load the mock-schedule JSON:
 
 ```bash
-cd app
+cd docs/app
 python3 -m http.server 8000
 # then open http://localhost:8000/ in your browser
 ```
 
-Pick a saved commute (the dashboard suggests the right one for the current day and time, or switch manually), then watch the large departure countdown tick down to your next train. Each leg shows the boarding station, destination, direction, and operator; tap **“I'm on this train → Next leg”** to advance through your journey. Create your own commute with **“+ New”** (name it, choose recurring weekdays, add legs with operator/station/direction and a preferred or next-available departure). Schedules come from the illustrative mock data in `app/data/mock_schedule.json`. **All departure times are clearly labeled MOCK data — not live or verified transit information.** Saved commutes persist in your browser via `localStorage` (`linkwise_commutes_v1`).
+Pick a saved commute (the dashboard suggests the right one for the current day and time, or switch manually), then watch the large departure countdown tick down to your next train. Each leg shows the boarding station, destination, direction, and operator; tap **“I'm on this train → Next leg”** to advance through your journey. Create your own commute with **“+ New”** (name it, choose recurring weekdays, add legs with operator/station/direction and a preferred or next-available departure). Schedules come from the illustrative mock data in `docs/app/data/mock_schedule.json`. **All departure times are clearly labeled MOCK data — not live or verified transit information.** Saved commutes persist in your browser via `localStorage` (`linkwise_commutes_v1`).
 
 ### Run the tests
 

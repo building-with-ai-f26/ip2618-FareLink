@@ -1,6 +1,6 @@
 // Deterministic tests for LinkWise core logic (no browser, no network).
 //
-// Loads app/app.js inside a vm sandbox with minimal browser stubs so we can
+// Loads docs/app/app.js inside a vm sandbox with minimal browser stubs so we can
 // exercise the REAL ScheduleService + helpers against fixed timestamps.
 //
 // Run:  node tests/schedule_logic.test.js
@@ -10,8 +10,8 @@ const path = require('path');
 const vm = require('vm');
 
 const root = path.join(__dirname, '..');
-const schedule = JSON.parse(fs.readFileSync(path.join(root, 'app/data/mock_schedule.json'), 'utf8'));
-const appSrc = fs.readFileSync(path.join(root, 'app/app.js'), 'utf8')
+const schedule = JSON.parse(fs.readFileSync(path.join(root, 'docs/app/data/mock_schedule.json'), 'utf8'));
+const appSrc = fs.readFileSync(path.join(root, 'docs/app/app.js'), 'utf8')
   // Expose const/function bindings (vm doesn't surface lexical decls on the context).
   + '\n;Object.assign(globalThis, { ScheduleService, toMinutes, fmtCountdown, suggestCommuteId, loadCommutes, getCommutes: () => commutes });';
 
