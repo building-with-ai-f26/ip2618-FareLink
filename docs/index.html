@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FareLink · Building with AI (Fall 2026)</title>
+  <title>LinkWise · Building with AI (Fall 2026)</title>
 
   <!-- Week 1: create your PostHog account only.
        Build 2: paste your project's current PostHog web snippet here,
@@ -166,8 +166,8 @@
     <!-- HERO / PRODUCT PITCH -->
     <header>
       <span class="eyebrow">NYU Stern · Building with AI · Fall 2026</span>
-      <h1>FareLink</h1>
-      <p class="tagline">One journey. One payment. Every ride. — a unified transit commerce experience that settles a multi-operator journey in a single checkout and keeps every ticket in one wallet.</p>
+      <h1>LinkWise</h1>
+      <p class="tagline">Smarter connections, every day. — a personalized commuter assistant that helps NJ–NYC riders catch their transit connections through large, colorful departure countdowns.</p>
       <div class="cta-row">
         <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
@@ -179,22 +179,30 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> Build 1 — local prototype (runs on your machine).<br />
+        <strong>Current Status:</strong> Pivoted to LinkWise — local prototype (runs on your machine).<br />
         <strong>Demo:</strong> Screenshots below are captured from the working local <code>app/index.html</code> prototype.
       </p>
       <div class="shots">
         <figure>
-          <img src="images/basket.png" alt="FareLink combined ticket basket for Newark Penn to Herald Square: the NJ Transit rail leg is covered by a held monthly pass and the MTA subway leg is a $2.90 mock single ticket, for one simulated combined payment of $2.90." />
-          <figcaption>One combined, multi-operator ticket basket (NJ Transit + MTA). A held monthly pass covers its eligible leg at $0; the other leg is an illustrative mock single ticket. Checkout is simulated.</figcaption>
+          <img src="images/dashboard.png" alt="LinkWise dashboard showing two saved commutes, Morning to NYU and Evening Home, as horizontally scrollable cards. The relevant one for the current day and time is marked Suggested now and outlined as active." />
+          <figcaption>The saved-commutes dashboard. LinkWise suggests the right commute for the current day and time (“Suggested now”); riders can switch manually by tapping any card.</figcaption>
         </figure>
         <figure>
-          <img src="images/wallet.png" alt="FareLink simulated journey wallet showing two simulated orders with DEMO tickets labeled Not valid for travel: a fully pass-covered Hoboken to Times Square trip and a Secaucus to World Trade Center trip with one paid demo ticket and one pass-covered leg." />
-          <figcaption>The persistent (localStorage) journey wallet after two simulated checkouts. Every ticket is a DEMO artifact labeled “Not valid for travel.”</figcaption>
+          <img src="images/countdown.png" alt="LinkWise large departure countdown reading several minutes until a PATH train, showing the boarding station, destination, direction, following departure, and an I'm on this train button. The data is labeled MOCK." />
+          <figcaption>The centerpiece: a large, colorful per-second countdown to the next train, with boarding station, destination, direction, operator, and the following departure. All times are labeled MOCK.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/setup.png" alt="LinkWise new-commute setup sheet with a name field, weekday toggles for Mon through Fri, and editable transit legs each selecting a service and a preferred or next-available departure time." />
+          <figcaption>Commute setup: name the commute, pick recurring weekdays, and add legs (operator/station/direction plus a preferred or next-available departure). Saved locally.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/next-leg.png" alt="LinkWise countdown after tapping I'm on this train, now showing Leg 2 of 2 on the Light Rail with the second leg pill highlighted and a Previous leg option." />
+          <figcaption>Advancing between legs: tapping “I'm on this train → Next leg” moves the countdown to the next leg (here Leg 2 on the Light Rail), with the active leg highlighted.</figcaption>
         </figure>
       </div>
       <p class="meta">
-        The Build 1 prototype is a simulated unified-transit-commerce flow: choose a multi-operator journey, review one combined ticket basket (passes you already hold cover their legs at no charge), complete a simulated checkout, and keep every DEMO ticket in a persistent journey wallet. Checkout is simulated — no real payment is processed and no real or authorized tickets are issued.</p><p class="meta">
-        All fares are illustrative mock data; tickets are clearly labeled “DEMO — Not valid for travel.”
+        The prototype is a personalized commute assistant: the dashboard suggests (or you switch to) a saved commute, a large per-second countdown shows the next train’s boarding station, destination, direction, and operator, and you tap “I'm on this train” to advance through legs. When a departure passes, the countdown rolls to the next eligible one.</p><p class="meta">
+        All departure times are illustrative mock data, clearly labeled “MOCK — not live or verified schedule information.” There are no fare payments, checkout baskets, or ticket wallets.
       </p>
     </section>
 
@@ -203,26 +211,26 @@
       <h2>Living PRD (Product Requirements Document)</h2>
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
-      <h3>0. Vision vs. Build 1 Scope</h3>
-      <p><strong>Long-term vision:</strong> FareLink is a <em>unified transit commerce experience</em> — <em>One journey. One payment. Every ride.</em> It combines <strong>Checkout</strong> (one transaction for a multi-operator journey), <strong>Handoff</strong> (all tickets and payment actions organized in one wallet), and <strong>Bundles</strong> (personalized cross-system subscriptions) into a single account that taps to ride across participating systems.</p>
-      <p><strong>Build 1 scope (this prototype):</strong> A simulated slice of <em>Checkout + Handoff</em>. The rider selects a multi-operator journey, reviews one combined ticket basket, completes a <em>simulated</em> checkout, and accesses a <em>simulated</em> persistent journey wallet. Passes the rider already holds cover their matching legs at no charge (still shown in the wallet). It uses illustrative mock fares, issues only clearly-labeled DEMO tickets, and does not move money or connect to live transit systems. <strong>Bundles are out of scope for Build 1.</strong></p>
+      <h3>0. Vision vs. Current Build Scope</h3>
+      <p><strong>Long-term vision:</strong> LinkWise is a <em>personalized commute assistant</em> — <em>Smarter connections, every day.</em> It helps people who ride the same NJ–NYC routes daily make smarter connections with real-time departure countdowns, saved daily routes, and personalized preferences across PATH, NJ Transit Rail, and Hudson-Bergen Light Rail. Future versions add location-triggered alerts, verified platform/track assignments, crowding estimates, speed-vs-comfort recommendations, and live operator integrations.</p>
+      <p><strong>Current build scope (this prototype):</strong> A personalized countdown assistant. The rider saves named multi-leg commutes with recurring weekdays; the dashboard suggests the right commute for the current day and time (or the rider switches manually); a large, colorful per-second countdown shows the next train’s boarding station, destination, direction, and operator; the rider taps “I'm on this train” to advance through legs; and when a departure passes, the countdown rolls to the next eligible one. Commutes persist in <code>localStorage</code>. It uses illustrative MOCK schedule data and does not connect to live transit systems. <strong>Live API integration, location alerts, and platform/crowding data are out of scope for this build.</strong></p>
 
       <h3>1. Target User & The Job to Be Done</h3>
-      <p><strong>Who is this for?</strong> NJ-resident NYU classmates and friends who commute into Manhattan via NJ Transit rail, PATH, and the MTA subway. They are reachable in person on campus, so I can watch them plan and pay for real commutes.</p>
-      <p><strong>The painful "Before" workflow:</strong> A single door-to-door journey crosses operators (NJ Transit, PATH, MTA), each with its own app, ticket, and payment step. Riders juggle multiple purchases, can't see one combined price, and have tickets scattered across apps — with no single place that also recognizes the passes they already hold.</p>
-      <p><strong>The "After" workflow with this product:</strong> The rider picks a journey, sees one combined basket (with held passes already covering their legs), pays once in a single simulated checkout, and finds every ticket organized in one journey wallet.</p>
+      <p><strong>Who is this for?</strong> NJ-resident NYU classmates and friends who commute into Manhattan via PATH, NJ Transit Rail, and Hudson-Bergen Light Rail. They ride the same routes daily and are reachable in person on campus, so I can watch them use it on a real morning or evening commute.</p>
+      <p><strong>The painful "Before" workflow:</strong> A door-to-door commute chains multiple operators and transfers. Riders check separate apps and schedules, do mental math on “can I still make it?”, and risk missing a tight connection — with no single, glanceable view of how long until their specific next train leaves.</p>
+      <p><strong>The "After" workflow with this product:</strong> The rider opens LinkWise, which already shows the right commute for right now, and sees one big countdown to their next train — with the exact station, direction, and operator. They tap “I'm on this train” to advance to the next leg, and if they miss one, the countdown simply rolls to the following departure.</p>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> Select a multi-operator journey → review one combined ticket basket (held passes cover matching legs at $0) → complete a simulated checkout → access a persistent simulated journey wallet. Results are computed from the journey + mock rules + held passes; orders and tickets persist locally across refreshes.</li>
-        <li><strong>Out of Scope #1:</strong> Real payments — checkout is simulated; no money moves, no card processing, no stored value.</li>
-        <li><strong>Out of Scope #2:</strong> Real or authorized tickets and live integrations — only DEMO tickets labeled “Not valid for travel”; no real NJ Transit / PATH / MTA APIs, schedules, or fare validation.</li>
-        <li><strong>Out of Scope #3:</strong> Bundles — personalized cross-system subscriptions are a future-version feature, not built in Build 1; only clearly labeled mock fares.</li>
+        <li><strong>In Scope (Core Workflow):</strong> Save named multi-leg commutes with recurring weekdays → dashboard suggests the relevant commute by day/time (manual switch available) → large per-second departure countdown with station/destination/direction/operator → tap to advance legs → roll to the next eligible departure when one passes. Commutes persist locally across refreshes; the countdown is computed from mock schedule data via a single <code>ScheduleService</code> seam.</li>
+        <li><strong>Out of Scope #1:</strong> Live transit data — all departure times are illustrative MOCK data labeled “not live or verified”; no real PATH / NJ Transit / HBLR APIs or real-time feeds.</li>
+        <li><strong>Out of Scope #2:</strong> Fare commerce — no fare payments, checkout baskets, or ticket wallets (removed from the FareLink concept this pivoted from).</li>
+        <li><strong>Out of Scope #3:</strong> Advanced real-time features — location-triggered alerts, verified platform/track assignments, crowding estimates, and seat/speed-vs-comfort recommendations are future-version features, not in this build.</li>
       </ul>
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> That riders value settling a whole multi-operator journey in one payment and one wallet enough to adopt it — and that operators would ultimately permit unified checkout and ticket issuance. (Build 1 simulates the end-to-end experience to test desirability before any real payment or operator integration.)</p>
-      <p><strong>Simple Architecture (Build 1):</strong> Journey + held passes (browser) → basket builder + simulated checkout (pure JS over mock rules) → DEMO tickets persisted in <code>localStorage</code> → journey wallet. No server, no payment SDK, no network calls beyond loading the local mock-data file.</p>
+      <p><strong>Riskiest Assumption:</strong> That a glanceable, per-second departure countdown for a rider’s own saved commute is valuable enough to open daily — and that mock schedule data can later be swapped for live operator feeds without reworking the experience. (This build tests the desirability of the countdown-first flow before any real integration.)</p>
+      <p><strong>Simple Architecture:</strong> Mock schedule file (<code>app/data/mock_schedule.json</code>) → <code>ScheduleService</code> (the single data seam) → dashboard suggestion + per-second countdown engine (pure vanilla JS) → commutes persisted in <code>localStorage</code>. No server, no framework, no network calls beyond loading the local mock-data file. Connecting a real transit API later means reimplementing <code>ScheduleService</code> only. Deterministic logic is covered by <code>tests/schedule_logic.test.js</code> (run with <code>node</code>).</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
@@ -249,6 +257,16 @@
     <section id="build-log">
       <h2>Weekly Build Log</h2>
       <p class="meta">Build on at least two separate days each week outside class, including the November 3 break. Push commits and log actual progress, failures, PRD changes, costs, and hours here. All build deadlines are noon, New York time.</p>
+
+      <div class="log-entry">
+        <h3>Pivot · FareLink → LinkWise (Smarter connections, every day)</h3>
+        <ul>
+          <li><strong>What shipped:</strong> Repositioned the product from a simulated unified-fare checkout (FareLink) to a personalized commute assistant (LinkWise) whose centerpiece is a large, colorful per-second departure countdown. New local app: a saved-commutes dashboard that suggests the right commute by day/time (with manual switching), minimal commute setup (name, recurring weekdays, multi-leg services with preferred or next-available departures), and a countdown that shows boarding station, destination, direction, and operator, rolls to the next eligible departure when one passes, and lets the rider tap “I'm on this train → Next leg” to advance. Removed fare payments, checkout baskets, and the ticket wallet from the experience. Added a <code>ScheduleService</code> seam (mock data now, real APIs later) and deterministic Node tests (<code>tests/schedule_logic.test.js</code>, 18 passing). Replaced <code>mock_fares.json</code> with <code>mock_schedule.json</code> (old data preserved in Git history).</li>
+          <li><strong>Things learned with AI:</strong> A plan-first, small-batch loop again paid off — the agent inspected the repo, proposed a phased plan, and waited for approval before editing. Isolating the data source behind a single <code>ScheduleService</code> made the mock-to-live path a one-module change, and driving a headless browser (no new dependencies) let me verify the app actually boots and renders, not just that the syntax is valid.</li>
+          <li><strong>What broke / changed in PRD:</strong> PRD rewritten around the countdown-first commute assistant: new target-user job (“can I make my next train?”), new in-scope workflow, and new non-goals (live data, fare commerce, advanced real-time features). All departure times are clearly labeled MOCK — the example commute times are illustrative, not verified schedules.</li>
+          <li><strong>Cost &amp; time this week:</strong> $0 additional project-specific spend (no new API credits; existing personal subscriptions only). Approximately [fill in] hours.</li>
+        </ul>
+      </div>
 
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>

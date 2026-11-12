@@ -1,6 +1,6 @@
-# FareLink
+# LinkWise
 
-> **One-line pitch:** FareLink helps NJ–NYC commuters purchase, organize, and access transit tickets across multiple transportation systems through one unified checkout and digital wallet.
+> **One-line pitch:** LinkWise is a personalized commuter assistant that helps NJ–NYC commuters catch their transit connections through large, colorful departure countdowns. *Smarter connections, every day.*
 
 - **Builder:** Isabella Pena Lazaro @ip2618
 - **Pod:** 12
@@ -52,6 +52,14 @@ python3 -m http.server 8000
 # then open http://localhost:8000/ in your browser
 ```
 
-Choose a multi-operator journey, review the combined ticket basket (passes you already hold cover their legs at no charge), complete a simulated checkout, and view your tickets in the persistent journey wallet. Fares come from the illustrative mock data in `app/data/mock_fares.json`. **Checkout is simulated — no real payments, and tickets are DEMO only, not valid for travel.** Simulated orders persist in your browser via `localStorage`; use “Start a new journey” or “Clear demo wallet” to reset.
+Pick a saved commute (the dashboard suggests the right one for the current day and time, or switch manually), then watch the large departure countdown tick down to your next train. Each leg shows the boarding station, destination, direction, and operator; tap **“I'm on this train → Next leg”** to advance through your journey. Create your own commute with **“+ New”** (name it, choose recurring weekdays, add legs with operator/station/direction and a preferred or next-available departure). Schedules come from the illustrative mock data in `app/data/mock_schedule.json`. **All departure times are clearly labeled MOCK data — not live or verified transit information.** Saved commutes persist in your browser via `localStorage` (`linkwise_commutes_v1`).
+
+### Run the tests
+
+Deterministic logic tests run in Node with no browser or network:
+
+```bash
+node tests/schedule_logic.test.js
+```
 
 If your app needs API keys, use a local environment file such as `.env`. Keep private keys out of source code, browser code, screenshots, and commits. The template ignores `.env`; `.env.example` contains placeholders only.

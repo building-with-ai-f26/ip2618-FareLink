@@ -3,15 +3,15 @@
 > Give this file to your coding agent and check that it is using these instructions. Keep the stack, commands, and ground rules current.
 
 ## 1. Project Overview
-- **What this repo builds:** FareLink, a unified transit commerce experience — “One journey. One payment. Every ride.” Long-term it combines Checkout (one payment for a multi-operator journey), Handoff (all tickets in one wallet), and Bundles (cross-system subscriptions). Build 1 is a local, SIMULATED slice of Checkout + Handoff for NJ→NYC journeys, using clearly labeled illustrative mock fares.
-- **Primary user & core workflow:** NJ-resident NYC commuters. Core workflow: select a multi-operator journey → review one combined ticket basket (held passes cover matching legs at $0) → complete a SIMULATED checkout → access a persistent (localStorage) journey wallet of DEMO tickets. No real payments, no real/authorized tickets. See the living PRD in `docs/index.html`.
-- **Tech stack:** Static HTML/CSS/vanilla JS (no build step, no backend). Mock data in `app/data/mock_fares.json`.
-- **Hard constraints:** No real payments, no live transit APIs, no unsupported/invented discounts. All fares are mock and labeled as such.
+- **What this repo builds:** LinkWise, a personalized commuter assistant — “Smarter connections, every day.” It helps NJ→NYC commuters catch their transit connections (PATH, NJ Transit Rail, Hudson-Bergen Light Rail) through a large, colorful departure countdown. Build 1 is a local slice: save multi-leg commutes, get the right one suggested by day/time, and watch a live-style countdown to the next train. All departure data is clearly labeled MOCK.
+- **Primary user & core workflow:** NJ-resident NYC commuters who ride the same routes daily. Core workflow: dashboard suggests (or user switches to) a saved commute → large per-second departure countdown shows boarding station, destination, direction, and operator → rider taps “I'm on this train → Next leg” to advance through legs → the countdown rolls to the next eligible departure when one passes. Commutes persist in `localStorage`. See the living PRD in `docs/index.html`.
+- **Tech stack:** Static HTML/CSS/vanilla JS (no build step, no backend). Mock schedule data in `app/data/mock_schedule.json`, read through a single `ScheduleService` seam in `app/app.js` so a real transit API can replace it later. Deterministic logic tests in `tests/schedule_logic.test.js` (run with `node`).
+- **Hard constraints:** No live transit APIs, no fabricated real-time information. All departure times are illustrative MOCK data and labeled as such. No fare payments, checkout baskets, or ticket wallets in the main experience.
 
 ## 2. Commands
 - **Install dependencies:** none (static app).
 - **Run locally:** `cd app && python3 -m http.server 8000` then open `http://localhost:8000/` (serving via http is required so the browser can `fetch` the JSON).
-- **Run deterministic tests:** none yet (planned for Build 4).
+- **Run deterministic tests:** `node tests/schedule_logic.test.js` (pure logic — ScheduleService, countdown formatting, next-departure selection, weekday validity, day/time commute suggestion; no browser or network).
 - **Run model evals:** none yet (no model in Build 1).
 
 ## 3. Non-Negotiable Engineering Rules

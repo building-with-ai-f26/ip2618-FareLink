@@ -1,0 +1,104 @@
+{
+  "_meta": {
+    "dataBasis": "illustrative-mock",
+    "disclaimer": "ILLUSTRATIVE MOCK DATA for the LinkWise prototype. All operators, stations, directions, and departure times below are hand-entered recurring EXAMPLES, NOT live or verified PATH / NJ Transit / Hudson-Bergen Light Rail schedules. Do NOT treat these as real-time information. The structure is designed so a real schedule/service API can replace this file later (see ScheduleService in app.js).",
+    "timezoneNote": "Times are local clock times (HH:MM, 24h) and are interpreted against the rider's browser clock. The prototype assumes the browser clock is NYC local time.",
+    "validDaysNote": "validDays uses 0=Sunday .. 6=Saturday. These example services run weekdays (Mon-Fri) only."
+  },
+
+  "operators": [
+    { "id": "HBLR", "name": "Hudson-Bergen Light Rail", "shortName": "Light Rail", "color": "#2dd4bf" },
+    { "id": "PATH", "name": "PATH", "shortName": "PATH", "color": "#f59e0b" },
+    { "id": "NJT_RAIL", "name": "NJ Transit Rail", "shortName": "NJ Transit", "color": "#ef4444" }
+  ],
+
+  "stations": [
+    { "id": "hblr_port_imperial", "operator": "HBLR", "name": "Port Imperial" },
+    { "id": "hblr_hoboken", "operator": "HBLR", "name": "Hoboken Terminal" },
+    { "id": "path_hoboken", "operator": "PATH", "name": "Hoboken" },
+    { "id": "path_9th", "operator": "PATH", "name": "9th Street" },
+    { "id": "path_33rd", "operator": "PATH", "name": "33rd Street" },
+    { "id": "njt_hoboken", "operator": "NJT_RAIL", "name": "Hoboken Terminal" },
+    { "id": "njt_nypenn", "operator": "NJT_RAIL", "name": "New York Penn Station" }
+  ],
+
+  "services": [
+    {
+      "id": "hblr_port_imperial_to_hoboken",
+      "operator": "HBLR",
+      "origin": "hblr_port_imperial",
+      "destination": "hblr_hoboken",
+      "direction": "Southbound toward Hoboken Terminal",
+      "line": "Hudson-Bergen Light Rail",
+      "validDays": [1, 2, 3, 4, 5],
+      "headwayNote": "MOCK example service, roughly every ~8 min in the AM peak.",
+      "departures": [
+        "07:32", "07:40", "07:48", "07:56", "08:04", "08:12", "08:20", "08:28", "08:36", "08:44"
+      ]
+    },
+    {
+      "id": "hblr_hoboken_to_port_imperial",
+      "operator": "HBLR",
+      "origin": "hblr_hoboken",
+      "destination": "hblr_port_imperial",
+      "direction": "Northbound toward Port Imperial",
+      "line": "Hudson-Bergen Light Rail",
+      "validDays": [1, 2, 3, 4, 5],
+      "headwayNote": "MOCK example service, roughly every ~8 min in the PM peak.",
+      "departures": [
+        "17:18", "17:26", "17:34", "17:42", "17:50", "17:58", "18:06", "18:14", "18:22", "18:30"
+      ]
+    },
+    {
+      "id": "path_hoboken_to_33rd",
+      "operator": "PATH",
+      "origin": "path_hoboken",
+      "destination": "path_33rd",
+      "direction": "33rd Street-bound (via 9th Street)",
+      "line": "Hoboken \u2013 33rd Street",
+      "validDays": [1, 2, 3, 4, 5],
+      "stops": ["path_hoboken", "path_9th", "path_33rd"],
+      "headwayNote": "MOCK example service, roughly every ~10 min in the AM peak.",
+      "departures": [
+        "08:05", "08:15", "08:25", "08:35", "08:45", "08:55", "09:05", "09:15"
+      ]
+    },
+    {
+      "id": "path_9th_to_hoboken",
+      "operator": "PATH",
+      "origin": "path_9th",
+      "destination": "path_hoboken",
+      "direction": "Hoboken-bound",
+      "line": "33rd Street \u2013 Hoboken",
+      "validDays": [1, 2, 3, 4, 5],
+      "stops": ["path_9th", "path_hoboken"],
+      "headwayNote": "MOCK example service, roughly every ~10 min in the PM peak.",
+      "departures": [
+        "16:55", "17:05", "17:12", "17:18", "17:25", "17:35", "17:45", "17:55", "18:05"
+      ]
+    }
+  ],
+
+  "sampleCommutes": [
+    {
+      "id": "morning_to_nyu",
+      "name": "Morning to NYU",
+      "arrivalGoal": "09:00",
+      "recurringDays": [1, 2, 3, 4, 5],
+      "legs": [
+        { "serviceId": "hblr_port_imperial_to_hoboken", "preferredTime": "07:56" },
+        { "serviceId": "path_hoboken_to_33rd", "preferredTime": "next" }
+      ]
+    },
+    {
+      "id": "evening_home",
+      "name": "Evening Home",
+      "arrivalGoal": null,
+      "recurringDays": [1, 2, 3, 4, 5],
+      "legs": [
+        { "serviceId": "path_9th_to_hoboken", "preferredTime": "17:12" },
+        { "serviceId": "hblr_hoboken_to_port_imperial", "preferredTime": "next" }
+      ]
+    }
+  ]
+}
