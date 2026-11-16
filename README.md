@@ -4,8 +4,9 @@
 
 - **Builder:** Isabella Pena Lazaro @ip2618
 - **Pod:** 12
-- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-FareLink/
-- **App:** runs locally through Week 4; add a cloud URL in Build 5.
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-LinkWise/
+- **Live app:** https://building-with-ai-f26.github.io/ip2618-LinkWise/app/ (publicly accessible now via GitHub Pages; also runs locally)
+- **GitHub:** https://github.com/building-with-ai-f26/ip2618-LinkWise
 
 ## Start here: Build 1
 
@@ -46,10 +47,10 @@ cd <your-repo-name>
 
 ### Try LinkWise online
 
-The app is published through GitHub Pages alongside the Product Page (both are served from `docs/`):
+The app is **already publicly accessible** on GitHub Pages, served alongside the Product Page from `docs/` (no local setup required):
 
-- **Live app:** https://building-with-ai-f26.github.io/ip2618-FareLink/app/
-- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-FareLink/
+- **Live app:** https://building-with-ai-f26.github.io/ip2618-LinkWise/app/
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-LinkWise/
 
 ### Run the app locally
 

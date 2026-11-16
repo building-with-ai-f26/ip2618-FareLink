@@ -11,7 +11,7 @@
 ## 2. Commands
 - **Install dependencies:** none (static app).
 - **Run locally:** `cd docs/app && python3 -m http.server 8000` then open `http://localhost:8000/` (serving via http is required so the browser can `fetch` the JSON).
-- **Live URLs (GitHub Pages):** app at `https://building-with-ai-f26.github.io/ip2618-FareLink/app/`, Product Page at `https://building-with-ai-f26.github.io/ip2618-FareLink/`.
+- **Live URLs (GitHub Pages, publicly accessible now):** app at `https://building-with-ai-f26.github.io/ip2618-LinkWise/app/`, Product Page at `https://building-with-ai-f26.github.io/ip2618-LinkWise/`. Repo: `https://github.com/building-with-ai-f26/ip2618-LinkWise`.
 - **Run deterministic tests:** `node tests/schedule_logic.test.js` (pure logic — ScheduleService, countdown formatting, next-departure selection, weekday validity, day/time commute suggestion, and the MTA GTFS-Realtime adapter against a captured feed fixture; no browser or network).
 - **Run model evals:** none yet (no model in Build 1).
 
