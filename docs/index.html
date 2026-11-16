@@ -5,9 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LinkWise · Building with AI (Fall 2026)</title>
 
-  <!-- Week 1: create your PostHog account only.
-       Build 2: paste your project's current PostHog web snippet here,
-       then install analytics in the local app and verify events. -->
+  <!-- PostHog analytics (US Cloud) — privacy-safe, with session-replay opt-out.
+       Uses the PUBLIC project token, which is safe to expose in client-side code. -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageViewId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+    (function () {
+      var OPTOUT_KEY = 'linkwise_replay_optout', NOTICE_KEY = 'linkwise_analytics_notice';
+      var declined = false;
+      try { declined = localStorage.getItem(OPTOUT_KEY) === '1'; } catch (e) {}
+      posthog.init('phc_nC3wqKwauh3i3c4JAT2mxivyRa87XozwNwSRGJFZaDpL', {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        disable_session_recording: declined,            // honor tester opt-out
+        session_recording: { maskAllInputs: true, maskTextSelector: '.cc-name' } // mask inputs + user-entered commute names
+      });
+      // Tester privacy notice + “Decline recording” control.
+      window.addEventListener('DOMContentLoaded', function () {
+        var bar = document.getElementById('ph-notice');
+        if (!bar) return;
+        var dismissed = false;
+        try { dismissed = localStorage.getItem(NOTICE_KEY) === '1'; } catch (e) {}
+        if (dismissed) return;
+        bar.style.display = 'flex';
+        var hide = function () { bar.style.display = 'none'; try { localStorage.setItem(NOTICE_KEY, '1'); } catch (e) {} };
+        var ok = document.getElementById('ph-ok'), no = document.getElementById('ph-decline');
+        if (ok) ok.addEventListener('click', hide);
+        if (no) no.addEventListener('click', function () {
+          try { posthog.stopSessionRecording(); } catch (e) {}
+          try { localStorage.setItem(OPTOUT_KEY, '1'); } catch (e) {}
+          hide();
+        });
+      });
+    })();
+  </script>
 
   <style>
     :root {
@@ -169,7 +200,7 @@
       <h1>LinkWise</h1>
       <p class="tagline">Smarter connections, every day. — a personalized commuter assistant that helps NJ–NYC riders catch their transit connections through large, colorful departure countdowns.</p>
       <div class="cta-row">
-        <a class="btn" href="app/" onclick="window.posthog && posthog.capture('clicked_try_linkwise')">Try LinkWise →</a>
+        <a class="btn" href="app/" onclick="window.posthog && posthog.capture('clicked_try_product')">Try LinkWise →</a>
         <a class="btn btn-secondary" href="#live-demo">See the Product</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
         <a class="btn btn-secondary" href="#build-log">Weekly Build Log</a>
@@ -223,15 +254,20 @@
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> Save named multi-leg commutes with recurring weekdays → dashboard suggests the relevant commute by day/time (manual switch available) → large per-second departure countdown with station/destination/direction/operator → tap to advance legs → roll to the next eligible departure when one passes. Commutes persist locally across refreshes; the countdown is computed from mock schedule data via a single <code>ScheduleService</code> seam.</li>
-        <li><strong>Out of Scope #1:</strong> Live transit data — all departure times are illustrative MOCK data labeled “not live or verified”; no real PATH / NJ Transit / HBLR APIs or real-time feeds.</li>
+        <li><strong>In Scope (Core Workflow):</strong> Save named multi-leg commutes with recurring weekdays → dashboard suggests the relevant commute by day/time (manual switch available) → large per-second departure countdown with station/destination/direction/operator → tap to advance legs → roll to the next eligible departure when one passes. Commutes persist locally across refreshes; the countdown is driven through a single <code>ScheduleService</code> seam.</li>
+        <li><strong>In Scope (Real-API proof of concept — new in Build 2):</strong> One clearly-labeled <strong>“Live API Demo (MTA)”</strong> commute drives a <strong>real</strong> departure countdown from the official <strong>MTA GTFS-Realtime</strong> feed (Times Sq–42 St, 1 train, downtown/South Ferry-bound). It shows a <strong>LIVE / MOCK / UNAVAILABLE</strong> status and feed freshness. All PATH / NJ Transit / Hudson-Bergen Light Rail commutes remain illustrative MOCK and are labeled as such.</li>
+        <li><strong>Out of Scope #1:</strong> Live PATH / NJ Transit / HBLR data — those departure times are illustrative MOCK (no official, credential-free real-time feed is available for them; see “Why MTA” below). Only the labeled MTA demo is live.</li>
         <li><strong>Out of Scope #2:</strong> Fare commerce — no fare payments, checkout baskets, or ticket wallets (removed from the FareLink concept this pivoted from).</li>
         <li><strong>Out of Scope #3:</strong> Advanced real-time features — location-triggered alerts, verified platform/track assignments, crowding estimates, and seat/speed-vs-comfort recommendations are future-version features, not in this build.</li>
       </ul>
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> That a glanceable, per-second departure countdown for a rider’s own saved commute is valuable enough to open daily — and that mock schedule data can later be swapped for live operator feeds without reworking the experience. (This build tests the desirability of the countdown-first flow before any real integration.)</p>
-      <p><strong>Simple Architecture:</strong> Mock schedule file (<code>docs/app/data/mock_schedule.json</code>) → <code>ScheduleService</code> (the single data seam) → dashboard suggestion + per-second countdown engine (pure vanilla JS) → commutes persisted in <code>localStorage</code>. No server, no framework, no network calls beyond loading the local mock-data file. Connecting a real transit API later means reimplementing <code>ScheduleService</code> only. Deterministic logic is covered by <code>tests/schedule_logic.test.js</code> (run with <code>node</code>).</p>
+      <p><strong>Biggest technical risk:</strong> <em>Real-time transit data availability and reliability.</em> Live feeds can be unreachable, CORS-blocked, stale, empty, or rate-limited — and for our actual corridor, <strong>PATH has no official public real-time feed</strong> and <strong>NJ Transit’s is gated behind registration</strong> (verified during Build 2). If the countdown ever showed a confidently-wrong “next train,” the product would lose trust.</p>
+      <p><strong>How this integration tests that risk:</strong> We integrated the one official, credential-free, CORS-enabled real-time feed we could verify — <strong>MTA GTFS-Realtime</strong> — and built the UI to be honest about data provenance: a <strong>LIVE</strong> badge with feed-age only when a fresh response parses successfully, an explicit <strong>UNAVAILABLE</strong> state (with reason) on failure/stale/empty responses instead of guessing, and <strong>MOCK</strong> labels everywhere else. This proves the end-to-end real-API path (fetch → parse → freshness-check → countdown) and the failure handling that any future PATH/NJT integration will need.</p>
+      <p><strong>Why MTA as the proof of concept (and why PATH/NJT remain future work):</strong> Build 2 needs one <em>reliable, working</em> real API without paid services or app-embedded credentials. PATH’s official GTFS has no linked real-time feed and its static schedule was expired/CORS-blocked; NJ Transit’s API requires an account/token and its HBLR real-time coverage was unverifiable. MTA’s GTFS-Realtime is official, <strong>key-free</strong>, and returns <code>access-control-allow-origin: *</code>, so it works directly from a static page. It’s a <em>technical</em> proof of concept for the real-time countdown; swapping in PATH/NJT later is a <code>ScheduleService</code>-only change once an accessible feed exists.</p>
+      <p><strong>Full user action tested:</strong> On the dashboard the rider selects the “Live API Demo (MTA)” commute → the app fetches and parses the live MTA feed → a large per-second countdown shows the <em>actual</em> next downtown 1-train departure from Times Sq–42 St (station, line, direction, next + following), labeled LIVE with feed freshness → a <code>viewed_live_countdown</code> PostHog event is captured. If the feed fails, the same action yields a clear UNAVAILABLE state.</p>
+      <p><strong>Architecture &amp; data flow:</strong> <code>ScheduleService</code> is still the single data seam. MOCK legs read bundled schedules from <code>docs/app/data/mock_schedule.json</code>; the one <code>"live": true</code> service instead calls <code>ScheduleService.refreshLive()</code> → <code>fetch(MTA GTFS-Realtime)</code> → a dependency-free protobuf decoder (<code>parseMtaDepartures</code>) extracts the FeedHeader timestamp and this stop’s departures → a freshness check (reject if older than 90s) → results feed the existing countdown engine unchanged. A ~25s background poll refreshes live data; the 1-second tick is shared with mock legs. No server and <strong>no Cloudflare Worker were needed</strong> (the MTA feed is CORS-enabled). The real-data adapter is covered by a focused test against a captured feed fixture (<code>tests/schedule_logic.test.js</code>, <code>tests/fixtures/mta_gtfs_123.pb</code>).</p>
+      <p><strong>Estimated cost per API request:</strong> <strong>$0.00</strong> — the MTA GTFS-Realtime feed is free and requires no API key; requests go directly from the browser with no server or paid proxy. The only “cost” is bandwidth (~70–105 KB per poll, roughly every 25s while the live commute is open).</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
@@ -241,7 +277,7 @@
         </div>
         <div class="stat-box">
           <div class="stat-label">Est. Cost Per User Run</div>
-          <div class="stat-value">[Not yet estimated]</div>
+          <div class="stat-value">$0.00 — free MTA feed, no key, no server</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">User Evidence (Analytics from Build 2)</div>
@@ -282,10 +318,19 @@
       <div class="log-entry">
         <h3>Build 2 · Smallest Local Version & PostHog (Due Nov 16)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [Local working slice, PostHog verified on this page and the local app, PRD v2, and local setup in AGENTS.md]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>Completed &amp; verified locally:</strong> Pivoted FareLink into <strong>LinkWise</strong>, a personalized commute assistant. Built personalized, recurring, multi-leg commutes (saved in <code>localStorage</code>) and the interactive, per-second departure countdown that rolls to the next eligible train and advances leg-by-leg. Added the PostHog JS SDK (HTML-snippet method, US Cloud) to both the Product Page and the app, wired a custom <code>clicked_try_product</code> event on the “Try LinkWise” button, and added privacy controls for session replay (input/commute-name masking plus a tester notice with a “Decline recording” opt-out). Verified locally that the app loads with no console errors, the countdown ticks every second, saved commutes persist across refresh, the PostHog SDK initializes, and the opt-out disables recording. Automated tests pass <strong>18/18</strong> (<code>node tests/schedule_logic.test.js</code>).</li>
+          <li><strong>Real API integration (MTA, verified working):</strong> Added one clearly-labeled <strong>“Live API Demo (MTA)”</strong> commute that drives a <em>real</em> departure countdown from the official <strong>MTA GTFS-Realtime</strong> feed (Times Sq–42 St, 1 train, downtown/South Ferry-bound) — fetched directly from the static page (no API key, no server, no paid proxy) and parsed with a dependency-free protobuf decoder. The UI shows an honest <strong>LIVE / MOCK / UNAVAILABLE</strong> status with feed freshness, and falls back to UNAVAILABLE (never fake data) on failure/stale/empty responses. A <code>viewed_live_countdown</code> PostHog event fires when a live countdown is shown. This is a <em>technical proof of concept</em> for the real-time countdown: <strong>PATH has no official public real-time feed and NJ Transit’s requires registration</strong> (both verified this week), so those commutes stay MOCK and PATH/NJT integrations remain future work. Automated tests now pass <strong>25/25</strong>, including a focused test of the MTA adapter against a captured real-feed fixture.</li>
+          <li><strong>Not yet verified (pending dashboard check):</strong> I have <em>not</em> yet confirmed in the PostHog dashboard that <code>$pageview</code>, <code>clicked_try_product</code>, <code>viewed_live_countdown</code>, or session recordings were actually received. Session Replay must still be enabled in PostHog project settings before recordings can be captured. These remain open items to validate in Live Events and Session Replay.</li>
+          <li><strong>What broke / changed in PRD:</strong> Scope shifted from unified fare checkout to a countdown-first commute assistant; removed fare payments, checkout baskets, and the ticket wallet; added a <code>ScheduleService</code> seam so mock schedule data can later be swapped for live operator feeds. All departure times remain clearly labeled MOCK.</li>
+          <li><strong>Tooling:</strong> Built with the <strong>Pi coding agent</strong> using <strong>Claude Opus 4.8</strong>.</li>
+          <li><strong>Cost &amp; time this week:</strong> Approximately <strong>$8.84</strong> in API cost was reported for the earlier LinkWise development session. This figure is <em>not</em> the full total — it excludes additional usage from the PostHog-integration and MTA-integration sessions and any other work this week, which is not yet accounted for. The MTA GTFS-Realtime feed itself is free (no key), so estimated cost per live request is <strong>$0.00</strong>. Hours: [fill in].</li>
         </ul>
+        <div class="shots" style="grid-template-columns:minmax(0,320px);">
+          <figure>
+            <img src="images/mta-live-demo.png" alt="LinkWise Live API Demo (MTA) countdown: a green LIVE badge, MTA New York City Subway, a large 6:41 countdown until the 9:00 PM departure, feed updated 5 seconds ago, boarding at Times Sq–42 St on the 1 train toward South Ferry, direction Downtown and South Ferry-bound, following train at 9:05 PM. The dashboard above distinguishes this live commute from the mock Evening Home commute." />
+            <figcaption><strong>Real MTA API-powered demonstration.</strong> The “Live API Demo (MTA)” countdown is driven by the official <strong>MTA GTFS-Realtime</strong> feed — note the green <strong>LIVE</strong> badge, station (Times Sq–42 St), line (1 train), direction (Downtown &amp; South Ferry-bound), live countdown, and “feed updated 5s ago.” This is <em>real</em> data; the PATH and NJ Transit commutes elsewhere in LinkWise remain clearly-labeled <strong>MOCK</strong>.</figcaption>
+          </figure>
+        </div>
       </div>
 
       <div class="log-entry">
@@ -316,6 +361,13 @@
         </ul>
       </div>
     </section>
+  </div>
+
+  <!-- Privacy notice for testers (shown until dismissed; stored in localStorage). -->
+  <div id="ph-notice" role="region" aria-label="Analytics privacy notice" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;max-width:620px;margin:0 auto;z-index:9999;gap:10px;align-items:center;flex-wrap:wrap;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:12px;padding:12px 14px;font:13px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);">
+    <span style="flex:1 1 240px;">LinkWise uses privacy-safe analytics and session replay (inputs masked, no personal data) to improve this prototype. You can decline session recording.</span>
+    <button id="ph-ok" style="cursor:pointer;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:13px;color:#0b1220;background:#22d3ee;">Got it</button>
+    <button id="ph-decline" style="cursor:pointer;border:1px solid #475569;border-radius:8px;padding:8px 12px;font-weight:600;font-size:13px;color:#e2e8f0;background:transparent;">Decline recording</button>
   </div>
 </body>
 </html>

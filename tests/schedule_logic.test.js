@@ -13,7 +13,7 @@ const root = path.join(__dirname, '..');
 const schedule = JSON.parse(fs.readFileSync(path.join(root, 'docs/app/data/mock_schedule.json'), 'utf8'));
 const appSrc = fs.readFileSync(path.join(root, 'docs/app/app.js'), 'utf8')
   // Expose const/function bindings (vm doesn't surface lexical decls on the context).
-  + '\n;Object.assign(globalThis, { ScheduleService, toMinutes, fmtCountdown, suggestCommuteId, loadCommutes, getCommutes: () => commutes });';
+  + '\n;Object.assign(globalThis, { ScheduleService, toMinutes, fmtCountdown, suggestCommuteId, loadCommutes, getCommutes: () => commutes, parseMtaDepartures });';
 
 // --- Minimal browser stubs --------------------------------------------------
 const noop = () => {};
@@ -35,6 +35,7 @@ const sandbox = {
     getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; }
   }; })(),
   setInterval: () => 0, clearInterval: noop,
+  TextDecoder: globalThis.TextDecoder, Buffer,  // native in browsers; supplied to the sandbox for tests
   // init() fetches the schedule; resolve it so boot succeeds.
   fetch: async () => ({ ok: true, status: 200, json: async () => schedule }),
   Date, Math, JSON, Array, Object
@@ -110,6 +111,36 @@ console.log('\nsuggestCommuteId — day/time relevance');
   check('morning time suggests "Morning to NYU"', morningId === 'morning_to_nyu', morningId);
   const eveningId = suggestCommuteId(wed(17, 0)); // evening window
   check('evening time suggests "Evening Home"', eveningId === 'evening_home', eveningId);
+}
+
+// ---------------------------------------------------------------------------
+//  Focused test for the real-data adapter: parse a REAL captured MTA
+//  GTFS-Realtime response (tests/fixtures/mta_gtfs_123.pb) and confirm the
+//  pure protobuf decoder extracts Times Sq (stop 127S) departures for the 1 train.
+// ---------------------------------------------------------------------------
+const { parseMtaDepartures } = sandbox;
+console.log('\nMTA GTFS-Realtime adapter (real captured feed fixture)');
+{
+  const fixturePath = path.join(root, 'tests/fixtures/mta_gtfs_123.pb');
+  const bytes = new Uint8Array(fs.readFileSync(fixturePath));
+  const parsed = parseMtaDepartures(bytes, { stopId: '127S', route: '1' });
+  const all = parseMtaDepartures(bytes, { stopId: '127S' }); // no route filter
+
+  check('returns a FeedHeader timestamp (epoch seconds)',
+    Number.isFinite(parsed.feedTs) && parsed.feedTs > 1600000000, 'feedTs=' + parsed.feedTs);
+  check('extracts at least one 127S departure', parsed.departures.length >= 1, 'n=' + parsed.departures.length);
+  check('route filter "1" keeps only route 1 departures',
+    parsed.departures.length > 0 && parsed.departures.every(d => d.route === '1'),
+    'routes=' + [...new Set(parsed.departures.map(d => d.route))].join(','));
+  check('unfiltered 127S includes multiple routes (1/2/3)',
+    new Set(all.departures.map(d => d.route)).size >= 2,
+    'routes=' + [...new Set(all.departures.map(d => d.route))].join(','));
+  check('departure epochs are plausible unix seconds (varint decoded without 32-bit overflow)',
+    parsed.departures.every(d => d.epoch > 1600000000 && d.epoch < 2000000000),
+    'sample=' + (parsed.departures[0] || {}).epoch);
+  check('departures are sorted soonest-first',
+    parsed.departures.every((d, i, a) => i === 0 || a[i - 1].epoch <= d.epoch));
+  check('a wrong stop id yields no departures', parseMtaDepartures(bytes, { stopId: 'NOPE' }).departures.length === 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

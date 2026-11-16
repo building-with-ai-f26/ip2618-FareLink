@@ -3,13 +3,15 @@
     "dataBasis": "illustrative-mock",
     "disclaimer": "ILLUSTRATIVE MOCK DATA for the LinkWise prototype. All operators, stations, directions, and departure times below are hand-entered recurring EXAMPLES, NOT live or verified PATH / NJ Transit / Hudson-Bergen Light Rail schedules. Do NOT treat these as real-time information. The structure is designed so a real schedule/service API can replace this file later (see ScheduleService in app.js).",
     "timezoneNote": "Times are local clock times (HH:MM, 24h) and are interpreted against the rider's browser clock. The prototype assumes the browser clock is NYC local time.",
-    "validDaysNote": "validDays uses 0=Sunday .. 6=Saturday. These example services run weekdays (Mon-Fri) only."
+    "validDaysNote": "validDays uses 0=Sunday .. 6=Saturday. These example services run weekdays (Mon-Fri) only.",
+    "liveNote": "Services flagged with \"live\": true are NOT mock. They are powered at runtime by the official MTA GTFS-Realtime feed (no API key, public, CORS-enabled). See ScheduleService live-adapter code in app.js. Only the clearly-labeled 'Live API Demo (MTA)' commute uses live data; all PATH / NJ Transit / Hudson-Bergen Light Rail times remain illustrative MOCK."
   },
 
   "operators": [
     { "id": "HBLR", "name": "Hudson-Bergen Light Rail", "shortName": "Light Rail", "color": "#2dd4bf" },
     { "id": "PATH", "name": "PATH", "shortName": "PATH", "color": "#f59e0b" },
-    { "id": "NJT_RAIL", "name": "NJ Transit Rail", "shortName": "NJ Transit", "color": "#ef4444" }
+    { "id": "NJT_RAIL", "name": "NJ Transit Rail", "shortName": "NJ Transit", "color": "#ef4444" },
+    { "id": "MTA_SUBWAY", "name": "MTA New York City Subway", "shortName": "Subway", "color": "#ee352e" }
   ],
 
   "stations": [
@@ -19,7 +21,9 @@
     { "id": "path_9th", "operator": "PATH", "name": "9th Street" },
     { "id": "path_33rd", "operator": "PATH", "name": "33rd Street" },
     { "id": "njt_hoboken", "operator": "NJT_RAIL", "name": "Hoboken Terminal" },
-    { "id": "njt_nypenn", "operator": "NJT_RAIL", "name": "New York Penn Station" }
+    { "id": "njt_nypenn", "operator": "NJT_RAIL", "name": "New York Penn Station" },
+    { "id": "mta_times_sq", "operator": "MTA_SUBWAY", "name": "Times Sq\u201342 St" },
+    { "id": "mta_south_ferry", "operator": "MTA_SUBWAY", "name": "South Ferry" }
   ],
 
   "services": [
@@ -76,6 +80,21 @@
       "departures": [
         "16:55", "17:05", "17:12", "17:18", "17:25", "17:35", "17:45", "17:55", "18:05"
       ]
+    },
+    {
+      "id": "mta_times_sq_1_downtown",
+      "operator": "MTA_SUBWAY",
+      "origin": "mta_times_sq",
+      "destination": "mta_south_ferry",
+      "direction": "Downtown & South Ferry-bound",
+      "line": "1",
+      "validDays": [0, 1, 2, 3, 4, 5, 6],
+      "live": true,
+      "source": "MTA GTFS-Realtime (official, public, no key)",
+      "feedUrl": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
+      "gtfsStopId": "127S",
+      "routeFilter": "1",
+      "maxFeedAgeSeconds": 90
     }
   ],
 
@@ -98,6 +117,15 @@
       "legs": [
         { "serviceId": "path_9th_to_hoboken", "preferredTime": "17:12" },
         { "serviceId": "hblr_hoboken_to_port_imperial", "preferredTime": "next" }
+      ]
+    },
+    {
+      "id": "live_api_demo",
+      "name": "Live API Demo (MTA)",
+      "arrivalGoal": null,
+      "recurringDays": [0, 1, 2, 3, 4, 5, 6],
+      "legs": [
+        { "serviceId": "mta_times_sq_1_downtown", "preferredTime": "next" }
       ]
     }
   ]

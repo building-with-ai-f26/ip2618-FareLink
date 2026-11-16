@@ -65,6 +65,49 @@ const ScheduleService = {
   get services() { return this.doc.services; },
   get sampleCommutes() { return this.doc.sampleCommutes || []; },
 
+  // Is this service powered by a real-time API (not mock)?
+  isLive(serviceId) { const s = this.service(serviceId); return !!(s && s.live); },
+
+  // Live cache keyed by serviceId:
+  //   { status: 'loading'|'live'|'unavailable', reason, departures:[{when,route,epoch}], feedTs, fetchedAt }
+  _liveCache: {},
+  liveState(serviceId) { return this._liveCache[serviceId] || { status: 'loading' }; },
+
+  // Fetch + parse the real MTA feed for a live service, updating the cache.
+  // Never throws: any failure sets status 'unavailable' with a reason.
+  async refreshLive(serviceId) {
+    const svc = this.service(serviceId);
+    if (!svc || !svc.live) return;
+    const set = (o) => { this._liveCache[serviceId] = Object.assign({ fetchedAt: Date.now() }, o); };
+    let buf;
+    try {
+      const res = await fetch(svc.feedUrl, { cache: 'no-store' });
+      if (!res.ok) return set({ status: 'unavailable', reason: `feed HTTP ${res.status}`, departures: [] });
+      buf = new Uint8Array(await res.arrayBuffer());
+    } catch (e) {
+      return set({ status: 'unavailable', reason: 'network error reaching the MTA feed', departures: [] });
+    }
+    let parsed;
+    try {
+      parsed = parseMtaDepartures(buf, { stopId: svc.gtfsStopId, route: svc.routeFilter });
+    } catch (e) {
+      return set({ status: 'unavailable', reason: 'could not parse GTFS-Realtime feed', departures: [] });
+    }
+    const nowS = Date.now() / 1000;
+    const maxAge = svc.maxFeedAgeSeconds || 120;
+    if (parsed.feedTs && (nowS - parsed.feedTs) > maxAge) {
+      return set({ status: 'unavailable', reason: 'live feed is stale', feedTs: parsed.feedTs, departures: [] });
+    }
+    const future = parsed.departures
+      .filter(d => d.epoch * 1000 >= Date.now() - 15000) // allow 15s grace
+      .map(d => ({ serviceId, when: new Date(d.epoch * 1000), epoch: d.epoch, route: d.route, live: true }))
+      .sort((a, b) => a.when - b.when);
+    if (!future.length) {
+      return set({ status: 'unavailable', reason: 'no upcoming departures returned', feedTs: parsed.feedTs, departures: [] });
+    }
+    set({ status: 'live', feedTs: parsed.feedTs, departures: future });
+  },
+
   // Human-readable summary of a service leg for display.
   describeService(serviceId) {
     const svc = this.service(serviceId);
@@ -123,6 +166,87 @@ const ScheduleService = {
   }
 };
 
+// ===========================================================================
+//  GTFS-Realtime adapter (pure functions) for the official MTA subway feed.
+//  No dependencies: a minimal protobuf wire-format decoder extracts just the
+//  fields we need (FeedHeader.timestamp, TripUpdate.trip.route_id, and each
+//  StopTimeUpdate.stop_id + departure/arrival time). Exposed for unit testing.
+// ===========================================================================
+
+// Read a base-128 varint starting at index i. Uses multiplication (not <<) so
+// values beyond 31 bits (e.g. epoch seconds) stay exact in JS numbers.
+function _pbVarint(bytes, i) {
+  let shift = 1, result = 0, b;
+  do { b = bytes[i++]; result += (b & 0x7f) * shift; shift *= 128; } while (b & 0x80);
+  return [result, i];
+}
+
+// Walk one protobuf message, returning [{ f: fieldNumber, w: wireType, v }].
+// For length-delimited fields v is a Uint8Array slice; for varints v is a number.
+function _pbFields(bytes) {
+  const out = [];
+  let i = 0;
+  const n = bytes.length;
+  while (i < n) {
+    let key; [key, i] = _pbVarint(bytes, i);
+    const f = Math.floor(key / 8), w = key & 7;
+    if (w === 0) { let v; [v, i] = _pbVarint(bytes, i); out.push({ f, w, v }); }
+    else if (w === 2) { let ln; [ln, i] = _pbVarint(bytes, i); out.push({ f, w, v: bytes.subarray(i, i + ln) }); i += ln; }
+    else if (w === 1) { out.push({ f, w, v: bytes.subarray(i, i + 8) }); i += 8; }
+    else if (w === 5) { out.push({ f, w, v: bytes.subarray(i, i + 4) }); i += 4; }
+    else throw new Error('unsupported wire type ' + w);
+  }
+  return out;
+}
+
+function _pbStr(u8) {
+  if (typeof TextDecoder !== 'undefined') return new TextDecoder('utf-8').decode(u8);
+  return Buffer.from(u8).toString('utf8'); // Node fallback (tests)
+}
+
+// Parse a GTFS-Realtime FeedMessage and return upcoming departures for one
+// GTFS stop_id (e.g. '127S'), optionally filtered to a route_id (e.g. '1').
+// Returns { feedTs, departures: [{ epoch, route }] } sorted soonest-first.
+function parseMtaDepartures(bytes, { stopId, route = null } = {}) {
+  const top = _pbFields(bytes);
+  let feedTs = null;
+  const departures = [];
+  for (const { f, w, v } of top) {
+    if (f === 1 && w === 2) {                 // FeedHeader
+      for (const h of _pbFields(v)) if (h.f === 3 && h.w === 0) feedTs = h.v;
+    } else if (f === 2 && w === 2) {          // FeedEntity
+      let tu = null;
+      for (const e of _pbFields(v)) if (e.f === 3 && e.w === 2) tu = e.v; // trip_update
+      if (!tu) continue;
+      let routeId = null;
+      const stus = [];
+      for (const t of _pbFields(tu)) {
+        if (t.f === 1 && t.w === 2) {         // TripDescriptor
+          for (const d of _pbFields(t.v)) if (d.f === 5 && d.w === 2) routeId = _pbStr(d.v);
+        } else if (t.f === 2 && t.w === 2) {  // StopTimeUpdate (repeated)
+          stus.push(t.v);
+        }
+      }
+      if (route && routeId !== route) continue;
+      for (const stu of stus) {
+        let sid = null, depT = null, arrT = null;
+        for (const s of _pbFields(stu)) {
+          if (s.f === 4 && s.w === 2) sid = _pbStr(s.v);               // stop_id
+          else if (s.f === 3 && s.w === 2) {                           // departure event
+            for (const x of _pbFields(s.v)) if (x.f === 2 && x.w === 0) depT = x.v;
+          } else if (s.f === 2 && s.w === 2) {                         // arrival event
+            for (const x of _pbFields(s.v)) if (x.f === 2 && x.w === 0) arrT = x.v;
+          }
+        }
+        const t = depT || arrT;
+        if (sid === stopId && t) departures.push({ epoch: t, route: routeId });
+      }
+    }
+  }
+  departures.sort((a, b) => a.epoch - b.epoch);
+  return { feedTs, departures };
+}
+
 // ---- Time helpers ----------------------------------------------------------
 
 function toMinutes(hhmm) {
@@ -151,6 +275,15 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 // ---- Persistence (safe if storage unavailable) -----------------------------
 
+function sampleToCommute(c) {
+  return {
+    id: c.id,
+    name: c.name,
+    recurringDays: c.recurringDays.slice(),
+    legs: c.legs.map(l => ({ serviceId: l.serviceId, preferredTime: l.preferredTime }))
+  };
+}
+
 function loadCommutes() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(COMMUTES_KEY)); } catch { saved = null; }
@@ -158,14 +291,15 @@ function loadCommutes() {
     commutes = saved;
   } else {
     // First run: seed from the clearly-labeled sample commutes.
-    commutes = ScheduleService.sampleCommutes.map(c => ({
-      id: c.id,
-      name: c.name,
-      recurringDays: c.recurringDays.slice(),
-      legs: c.legs.map(l => ({ serviceId: l.serviceId, preferredTime: l.preferredTime }))
-    }));
-    saveCommutes();
+    commutes = ScheduleService.sampleCommutes.map(sampleToCommute);
   }
+  // Ensure any sample commutes added in later builds (e.g. the Live API Demo)
+  // appear for returning users too, without disturbing their own commutes.
+  let added = false;
+  for (const s of ScheduleService.sampleCommutes) {
+    if (!commutes.some(c => c.id === s.id)) { commutes.push(sampleToCommute(s)); added = true; }
+  }
+  if (added || !Array.isArray(saved) || !saved.length) saveCommutes();
 }
 function saveCommutes() {
   try { localStorage.setItem(COMMUTES_KEY, JSON.stringify(commutes)); } catch {}
@@ -209,8 +343,14 @@ function activeCommute() {
 }
 
 // Resolve the chosen departure for a leg: the next departure at/after its
-// preferred time (today), else the next available. Returns { deps, primaryIdx }.
+// preferred time (today), else the next available.
 function legDepartures(leg, now) {
+  // LIVE legs read from the real-time cache (populated by the background poller).
+  if (ScheduleService.isLive(leg.serviceId)) {
+    const st = ScheduleService.liveState(leg.serviceId);
+    if (st.status !== 'live') return [];
+    return st.departures.filter(d => d.when >= now);
+  }
   const preferred = leg.preferredTime && leg.preferredTime !== 'next' ? leg.preferredTime : null;
   // Always fetch the raw next departures (soonest first).
   const next = ScheduleService.upcomingDepartures(leg.serviceId, now, { lookaheadDays: 7 });
@@ -219,6 +359,45 @@ function legDepartures(leg, now) {
   // but still fall through to next available once that has passed.
   const biased = ScheduleService.upcomingDepartures(leg.serviceId, now, { lookaheadDays: 7, afterTime: preferred });
   return biased.length ? biased : next;
+}
+
+// Data-source status for a leg: 'LIVE' | 'MOCK' | 'UNAVAILABLE' | 'LOADING'.
+function legStatus(leg) {
+  if (!ScheduleService.isLive(leg.serviceId)) return 'MOCK';
+  const st = ScheduleService.liveState(leg.serviceId);
+  if (st.status === 'live') return 'LIVE';
+  if (st.status === 'loading') return 'LOADING';
+  return 'UNAVAILABLE';
+}
+
+// Trigger a live refresh for the active leg if it is live and the cache is
+// missing or older than ~25s. Re-renders when fresh data arrives. Debounced.
+let _liveRefreshing = {};
+function maybeRefreshLive(leg, onDone) {
+  if (!leg || !ScheduleService.isLive(leg.serviceId)) return;
+  const sid = leg.serviceId;
+  const st = ScheduleService.liveState(leg.serviceId);
+  const fresh = st.fetchedAt && (Date.now() - st.fetchedAt) < 25000 && st.status === 'live';
+  if (fresh || _liveRefreshing[sid]) return;
+  _liveRefreshing[sid] = true;
+  ScheduleService.refreshLive(sid).finally(() => {
+    _liveRefreshing[sid] = false;
+    if (typeof onDone === 'function') onDone();
+  });
+}
+
+// Fire a PostHog event the first time a live-powered countdown renders for a
+// given commute+leg (guarded so it doesn't fire on every 1-second tick).
+const _capturedLiveViews = new Set();
+function capturedLiveView(commuteId, serviceId) {
+  const key = commuteId + '|' + serviceId;
+  if (_capturedLiveViews.has(key)) return;
+  _capturedLiveViews.add(key);
+  try {
+    if (typeof window !== 'undefined' && window.posthog) {
+      window.posthog.capture('viewed_live_countdown', { commute_id: commuteId, service_id: serviceId, source: 'mta_gtfs_realtime' });
+    }
+  } catch (e) { /* analytics must never break the app */ }
 }
 
 function renderDashboard() {
@@ -277,6 +456,47 @@ function renderCountdown() {
   const leg = c.legs[activeLegIndex];
   const info = ScheduleService.describeService(leg.serviceId);
   const now = new Date();
+  const status = legStatus(leg);
+  const isLive = ScheduleService.isLive(leg.serviceId);
+
+  // Keep the live cache warm; re-render when fresh data lands.
+  if (isLive) maybeRefreshLive(leg, renderCountdown);
+
+  const legHdr = `Leg ${activeLegIndex + 1} of ${c.legs.length} · ${esc(c.name)}`;
+
+  // LIVE leg still loading its first response.
+  if (status === 'LOADING') {
+    box.innerHTML = `
+      <div class="cd-card state-none">
+        <div class="cd-leg">${legHdr}</div>
+        <div class="cd-op" style="--op:${info ? info.operatorColor : '#8b5cf6'}"><span class="cd-op-dot"></span>${info ? esc(info.operatorName) : ''}</div>
+        <div class="cd-status loading">FETCHING LIVE DATA…</div>
+        <p class="hint">Contacting the official MTA GTFS-Realtime feed for ${info ? esc(info.originName) : 'this station'}…</p>
+      </div>`;
+    return;
+  }
+
+  // LIVE leg that could not be used reliably — honest UNAVAILABLE state.
+  if (status === 'UNAVAILABLE') {
+    const reason = ScheduleService.liveState(leg.serviceId).reason || 'live data unavailable';
+    box.innerHTML = `
+      <div class="cd-card state-none">
+        <div class="cd-leg">${legHdr}</div>
+        <div class="cd-op" style="--op:${info ? info.operatorColor : '#8b5cf6'}"><span class="cd-op-dot"></span>${info ? esc(info.operatorName) : ''}</div>
+        <div class="cd-status unavailable">UNAVAILABLE</div>
+        <div class="cd-details" style="margin-top:14px">
+          <div class="cd-row"><span class="cd-k">Station</span><span class="cd-v">${info ? esc(info.originName) : '—'}</span></div>
+          ${info && info.line ? `<div class="cd-row"><span class="cd-k">Line</span><span class="cd-v">${esc(info.line)} train</span></div>` : ''}
+          <div class="cd-row"><span class="cd-k">Reason</span><span class="cd-v">${esc(reason)}</span></div>
+        </div>
+        <div class="cd-actions"><button class="btn btn-ghost" id="retryLiveBtn">Retry live feed</button></div>
+        <p class="cd-note">The live MTA feed couldn’t be used right now. No departure is shown rather than guessing.</p>
+      </div>`;
+    const r = document.getElementById('retryLiveBtn');
+    if (r) r.addEventListener('click', () => { delete ScheduleService._liveCache[leg.serviceId]; renderCountdown(); });
+    return;
+  }
+
   const deps = legDepartures(leg, now);
 
   if (!info || !deps.length) {
@@ -288,6 +508,9 @@ function renderCountdown() {
       </div>`;
     return;
   }
+
+  // Fire a PostHog event the first time a live-powered countdown is shown.
+  if (status === 'LIVE') capturedLiveView(c.id, leg.serviceId);
 
   const primary = deps[0];
   const following = deps[1] || null;
@@ -305,18 +528,35 @@ function renderCountdown() {
     return `<span class="leg-pill ${i === activeLegIndex ? 'on' : ''}">${i + 1}. ${li ? esc(li.operatorShort) : '?'}</span>`;
   }).join('');
 
+  // Source badge + freshness + footnote differ for LIVE vs MOCK.
+  const statusPill = isLive
+    ? '<span class="cd-status live">\u25cf LIVE</span>'
+    : '<span class="cd-status mock">MOCK</span>';
+  const subChip = isLive ? '<span class="live-chip">LIVE</span>' : '<span class="mock-chip">MOCK</span>';
+  let freshness = '';
+  if (isLive) {
+    const ts = ScheduleService.liveState(leg.serviceId).feedTs;
+    if (ts) freshness = `<div class="cd-fresh">MTA feed updated ${Math.max(0, Math.round(Date.now() / 1000 - ts))}s ago</div>`;
+  }
+  const note = isLive
+    ? 'LIVE data from the official MTA GTFS-Realtime feed (public, no API key). Not affiliated with the MTA.'
+    : 'Illustrative MOCK departure data — not live or verified schedule information.';
+
   box.innerHTML = `
     <div class="cd-card state-${state}">
       <div class="cd-leg">Leg ${activeLegIndex + 1} of ${c.legs.length} · ${esc(c.name)}</div>
       <div class="cd-op" style="--op:${info.operatorColor}">
         <span class="cd-op-dot"></span>${esc(info.operatorName)}
       </div>
+      <div class="cd-badges">${statusPill}</div>
       <div class="cd-headline">${headline}</div>
       <div class="cd-timer${fmtCountdown(msAway).length >= 7 ? ' long' : ''}" id="cdTimer" aria-live="polite">${fmtCountdown(msAway)}</div>
-      <div class="cd-sub">until departure at <strong>${fmtClock(primary.when)}</strong> <span class="mock-chip">MOCK</span></div>
+      <div class="cd-sub">until departure at <strong>${fmtClock(primary.when)}</strong> ${subChip}</div>
+      ${freshness}
 
       <div class="cd-details">
         <div class="cd-row"><span class="cd-k">Board at</span><span class="cd-v">${esc(info.originName)}</span></div>
+        ${info.line ? `<div class="cd-row"><span class="cd-k">Line</span><span class="cd-v">${esc(info.line)}${isLive ? ' train' : ''}</span></div>` : ''}
         <div class="cd-row"><span class="cd-k">Toward</span><span class="cd-v">${esc(info.destinationName)}</span></div>
         <div class="cd-row"><span class="cd-k">Direction</span><span class="cd-v">${esc(info.direction)}</span></div>
         ${following ? `<div class="cd-row"><span class="cd-k">Following</span><span class="cd-v">${fmtClock(following.when)}</span></div>` : ''}
@@ -328,7 +568,7 @@ function renderCountdown() {
         <button class="btn" id="onTrainBtn">${activeLegIndex < c.legs.length - 1 ? "I'm on this train \u2192 Next leg" : "I'm on this train \u2713"}</button>
         ${activeLegIndex > 0 ? '<button class="btn btn-ghost" id="prevLegBtn">\u2190 Previous leg</button>' : ''}
       </div>
-      <p class="cd-note">Illustrative MOCK departure data — not live or verified schedule information.</p>
+      <p class="cd-note">${note}</p>
     </div>`;
 
   el('onTrainBtn').addEventListener('click', () => {
@@ -353,6 +593,7 @@ function startTicking() {
     if (!c || !c.legs.length) return;
     const leg = c.legs[activeLegIndex];
     if (!leg) return;
+    if (ScheduleService.isLive(leg.serviceId)) maybeRefreshLive(leg, renderCountdown); // keep live data warm
     const now = new Date();
     const deps = legDepartures(leg, now);
     const timer = document.getElementById('cdTimer');

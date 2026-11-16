@@ -4,6 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>LinkWise — Smarter connections, every day</title>
+
+  <!-- PostHog analytics (US Cloud) — privacy-safe, with session-replay opt-out.
+       Uses the PUBLIC project token, which is safe to expose in client-side code. -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageViewId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+    (function () {
+      var OPTOUT_KEY = 'linkwise_replay_optout', NOTICE_KEY = 'linkwise_analytics_notice';
+      var declined = false;
+      try { declined = localStorage.getItem(OPTOUT_KEY) === '1'; } catch (e) {}
+      posthog.init('phc_nC3wqKwauh3i3c4JAT2mxivyRa87XozwNwSRGJFZaDpL', {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        disable_session_recording: declined,            // honor tester opt-out
+        session_recording: { maskAllInputs: true, maskTextSelector: '.cc-name' } // mask inputs + user-entered commute names
+      });
+      // Tester privacy notice + “Decline recording” control.
+      window.addEventListener('DOMContentLoaded', function () {
+        var bar = document.getElementById('ph-notice');
+        if (!bar) return;
+        var dismissed = false;
+        try { dismissed = localStorage.getItem(NOTICE_KEY) === '1'; } catch (e) {}
+        if (dismissed) return;
+        bar.style.display = 'flex';
+        var hide = function () { bar.style.display = 'none'; try { localStorage.setItem(NOTICE_KEY, '1'); } catch (e) {} };
+        var ok = document.getElementById('ph-ok'), no = document.getElementById('ph-decline');
+        if (ok) ok.addEventListener('click', hide);
+        if (no) no.addEventListener('click', function () {
+          try { posthog.stopSessionRecording(); } catch (e) {}
+          try { localStorage.setItem(OPTOUT_KEY, '1'); } catch (e) {}
+          hide();
+        });
+      });
+    })();
+  </script>
+
   <style>
     :root {
       --bg-top: #0b1220;
@@ -88,6 +124,22 @@
       color: #c7f9ff; background: rgba(34,211,238,.16); border: 1px solid rgba(34,211,238,.4);
       padding: 1px 6px; border-radius: 999px; margin-left: 4px;
     }
+    .live-chip {
+      font-size: 9px; font-weight: 800; letter-spacing: .06em; vertical-align: middle;
+      color: #bbf7d0; background: rgba(34,197,94,.18); border: 1px solid rgba(34,197,94,.5);
+      padding: 1px 6px; border-radius: 999px; margin-left: 4px;
+    }
+    /* LIVE / MOCK / UNAVAILABLE status pill */
+    .cd-badges { margin: 6px 0 2px; }
+    .cd-status {
+      display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .08em;
+      padding: 3px 10px; border-radius: 999px; text-transform: uppercase;
+    }
+    .cd-status.live { color: #052e16; background: #22c55e; }
+    .cd-status.mock { color: #c7f9ff; background: rgba(34,211,238,.16); border: 1px solid rgba(34,211,238,.4); }
+    .cd-status.unavailable { color: #fecaca; background: rgba(239,68,68,.18); border: 1px solid rgba(239,68,68,.5); }
+    .cd-status.loading { color: #fde68a; background: rgba(245,158,11,.16); border: 1px solid rgba(245,158,11,.45); }
+    .cd-fresh { font-size: 11.5px; color: #86efac; margin-top: 4px; }
 
     .cd-details { margin: 18px auto 4px; max-width: 360px; text-align: left; }
     .cd-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
@@ -180,7 +232,7 @@
       <h1>LinkWise</h1>
     </div>
     <p class="tagline">Smarter connections, every day.</p>
-    <span class="mock-pill">Prototype · illustrative MOCK schedule data · not live transit info</span>
+    <span class="mock-pill">Prototype · MOCK commute schedules + one LIVE MTA demo (clearly labeled)</span>
 
     <!-- Dashboard: saved commutes + suggestion + manual switch -->
     <section id="dashboard"></section>
@@ -196,6 +248,13 @@
       <h2>New commute</h2>
       <div id="sheetBody"></div>
     </div>
+  </div>
+
+  <!-- Privacy notice for testers (shown until dismissed; stored in localStorage). -->
+  <div id="ph-notice" role="region" aria-label="Analytics privacy notice" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;max-width:520px;margin:0 auto;z-index:9999;gap:10px;align-items:center;flex-wrap:wrap;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:12px;padding:12px 14px;font:13px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.4);">
+    <span style="flex:1 1 220px;">LinkWise uses privacy-safe analytics and session replay (inputs masked, no personal data) to improve this prototype. You can decline session recording.</span>
+    <button id="ph-ok" style="cursor:pointer;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:13px;color:#0b1220;background:#22d3ee;">Got it</button>
+    <button id="ph-decline" style="cursor:pointer;border:1px solid #475569;border-radius:8px;padding:8px 12px;font-weight:600;font-size:13px;color:#e2e8f0;background:transparent;">Decline recording</button>
   </div>
 
   <script src="app.js?v=1"></script>
