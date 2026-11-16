@@ -1,6 +1,6 @@
-# FareLink
+# LinkWise
 
-> **One-line pitch:** FareLink helps NJ–NYC commuters purchase, organize, and access transit tickets across multiple transportation systems through one unified checkout and digital wallet.
+> **One-line pitch:** LinkWise is a personalized commuter assistant that helps NJ–NYC commuters catch their transit connections through large, colorful departure countdowns. *Smarter connections, every day.*
 
 - **Builder:** Isabella Pena Lazaro @ip2618
 - **Pod:** 12
@@ -26,6 +26,8 @@ Create your PostHog account in Week 1. Install it on the Product Page and local 
 | File / folder | Purpose |
 | --- | --- |
 | [`docs/index.html`](./docs/index.html) | Required public pitch, living PRD, and weekly build log. Update with actual work and evidence. |
+| [`docs/app/`](./docs/app/) | The LinkWise application (static HTML/CSS/JS + mock schedule data + a live MTA GTFS-Realtime adapter). Published via GitHub Pages at `/app/` and runs locally with no server dependencies. |
+| [`tests/`](./tests/) `fixtures/mta_gtfs_123.pb` | A captured real MTA GTFS-Realtime response used by the deterministic adapter test. |
 | [`Intent.md`](./Intent.md), [`Plan.md`](./Plan.md), [`journal/`](./journal/) | Optional drafting aids. No duplicate submission is required. |
 | [`AGENTS.md`](./AGENTS.md) | Local run commands, project context, and agent rules. Build 2 onward. |
 | [`tests/`](./tests/) | Verification guidance. Build 4 offers Track A domain evals **or** Track B user replays. |
@@ -42,16 +44,42 @@ git clone https://github.com/building-with-ai-f26/<your-repo-name>.git
 cd <your-repo-name>
 ```
 
-### Run the Build 1 prototype
+### Try LinkWise online
 
-The prototype is a static app with no dependencies. Serve the `app/` folder so the browser can load the mock-data JSON:
+The app is published through GitHub Pages alongside the Product Page (both are served from `docs/`):
+
+- **Live app:** https://building-with-ai-f26.github.io/ip2618-FareLink/app/
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/ip2618-FareLink/
+
+### Run the app locally
+
+The app is a static site with no dependencies. Serve the `docs/app/` folder so the browser can load the mock-schedule JSON:
 
 ```bash
-cd app
+cd docs/app
 python3 -m http.server 8000
 # then open http://localhost:8000/ in your browser
 ```
 
-Choose a multi-operator journey, review the combined ticket basket (passes you already hold cover their legs at no charge), complete a simulated checkout, and view your tickets in the persistent journey wallet. Fares come from the illustrative mock data in `app/data/mock_fares.json`. **Checkout is simulated — no real payments, and tickets are DEMO only, not valid for travel.** Simulated orders persist in your browser via `localStorage`; use “Start a new journey” or “Clear demo wallet” to reset.
+Pick a saved commute (the dashboard suggests the right one for the current day and time, or switch manually), then watch the large departure countdown tick down to your next train. Each leg shows the boarding station, destination, direction, and operator; tap **“I'm on this train → Next leg”** to advance through your journey. Create your own commute with **“+ New”** (name it, choose recurring weekdays, add legs with operator/station/direction and a preferred or next-available departure). Mock schedules come from `docs/app/data/mock_schedule.json`; **all PATH / NJ Transit / HBLR times are clearly labeled MOCK — not live or verified transit information.** Saved commutes persist in your browser via `localStorage` (`linkwise_commutes_v1`).
+
+### Live API demo (real MTA data)
+
+The **“Live API Demo (MTA)”** commute drives a **real** departure countdown from the official **MTA GTFS-Realtime** feed (Times Sq–42 St, 1 train, downtown/South Ferry-bound). It is clearly labeled **LIVE**, shows the feed’s freshness, and falls back to an explicit **UNAVAILABLE** state (never fake data) if the feed fails, is stale, or is empty.
+
+- **Feed:** `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs` — official, **no API key**, CORS-enabled (`access-control-allow-origin: *`), so it works directly from the static page (no server/proxy).
+- **Parsing:** a dependency-free GTFS-Realtime protobuf decoder in `docs/app/app.js` (`parseMtaDepartures`).
+- **Cost:** $0 (free feed, ~70–105 KB per poll, ~every 25s while that commute is open).
+- **Why MTA:** PATH has no official public real-time feed and NJ Transit’s requires registration (both verified in Build 2); MTA is the one official, credential-free, CORS-enabled real-time feed. It is a technical proof of concept — PATH/NJT integrations remain future work and only require a new `ScheduleService` adapter.
+
+**Verify the live request:** open the app, select **Live API Demo (MTA)**, then open your browser **DevTools → Network** and filter for `mtagtfsfeeds` — you’ll see the real request (protobuf response). Changing your device clock does **not** change the live countdown (it comes from the feed, not your clock).
+
+### Run the tests
+
+Deterministic logic tests run in Node with no browser or network:
+
+```bash
+node tests/schedule_logic.test.js
+```
 
 If your app needs API keys, use a local environment file such as `.env`. Keep private keys out of source code, browser code, screenshots, and commits. The template ignores `.env`; `.env.example` contains placeholders only.
